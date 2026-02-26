@@ -1,6 +1,5 @@
 import { db } from "@/lib/db";
 import type { CommentDTO, PostDetail, PostSummary } from "@/lib/types";
-import { computeFeedScore } from "@/lib/server/feed-ranker";
 
 const PAGE_SIZE = 10;
 
@@ -38,31 +37,13 @@ export async function getFeed(cursor?: string) {
           }
         }
       : {}),
-    orderBy: {
-      createdAt: "desc"
-    }
+    orderBy: [{ createdAt: "desc" }, { id: "desc" }]
   });
 
   const hasMore = posts.length > PAGE_SIZE;
   const items = posts.slice(0, PAGE_SIZE);
 
-  const ranked = [...items].sort(
-    (a, b) =>
-      computeFeedScore({
-        createdAt: b.createdAt,
-        likes: b._count.likes,
-        comments: b._count.comments,
-        saves: b._count.saves
-      }) -
-      computeFeedScore({
-        createdAt: a.createdAt,
-        likes: a._count.likes,
-        comments: a._count.comments,
-        saves: a._count.saves
-      })
-  );
-
-  const feed: PostSummary[] = ranked.map((post) => ({
+  const feed: PostSummary[] = items.map((post) => ({
     id: post.id,
     caption: post.caption,
     mediaUrl: post.mediaUrl,
@@ -165,10 +146,6 @@ export async function getPostDetail(postId: string, userId?: string): Promise<Po
   if (!post) return null;
   if (post.status !== "ACTIVE") return null;
 
-  if (post.visibility === "UNLISTED" && !userId) {
-    // Unlisted can be viewed publicly by direct URL; keep allowed.
-  }
-
   return {
     id: post.id,
     caption: post.caption,
@@ -206,14 +183,16 @@ export async function getPostDetail(postId: string, userId?: string): Promise<Po
   };
 }
 
-export async function getPostsByUsername(username: string) {
+export async function getPostsByUsername(username: string, viewerUserId?: string) {
   const user = await db.user.findUnique({ where: { username } });
   if (!user) return null;
+  const includeUnlisted = viewerUserId === user.id;
 
   const posts = await db.post.findMany({
     where: {
       authorId: user.id,
-      status: "ACTIVE"
+      status: "ACTIVE",
+      ...(includeUnlisted ? {} : { visibility: "PUBLIC" })
     },
     include: {
       author: true,
@@ -290,7 +269,7 @@ export async function getPostsByUsername(username: string) {
 
   const savedPosts: PostSummary[] = saved
     .map((entry) => entry.post)
-    .filter((post) => post.status === "ACTIVE")
+    .filter((post) => post.status === "ACTIVE" && (includeUnlisted || post.visibility === "PUBLIC"))
     .map((post) => ({
       id: post.id,
       caption: post.caption,

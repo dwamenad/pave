@@ -2,10 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPostsByUsername } from "@/lib/server/social-service";
 import { PostFeedCard } from "@/components/post-feed-card";
+import { getCurrentUser } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 export default async function ProfilePage({ params }: { params: { username: string } }) {
-  const profile = await getPostsByUsername(params.username);
+  const viewer = await getCurrentUser();
+  const profile = await getPostsByUsername(params.username, viewer?.id);
   if (!profile) {
     notFound();
   }
