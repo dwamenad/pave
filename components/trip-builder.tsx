@@ -122,11 +122,11 @@ export function TripBuilder({ apiKey, initialTrip, groupToken, initialVotes }: {
     }));
   }
 
-  function onDragStart(e: DragEvent<HTMLDivElement>, itemId: string) {
+  function onDragStart(e: DragEvent<HTMLElement>, itemId: string) {
     e.dataTransfer.setData("itemId", itemId);
   }
 
-  async function onDrop(e: DragEvent<HTMLDivElement>, dayId: string) {
+  async function onDrop(e: DragEvent<HTMLElement>, dayId: string) {
     e.preventDefault();
     const itemId = e.dataTransfer.getData("itemId");
 

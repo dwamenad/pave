@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { PlaceHubClient } from "@/components/place-hub-client";
 import { placesProvider } from "@/lib/providers";
 
+export const dynamic = "force-dynamic";
 async function fetchCategory(lat: number, lng: number, type: string) {
   return placesProvider.nearbySearch({ lat, lng, type, radiusMeters: 3000, minPrice: 2, maxPrice: 2 });
 }
@@ -29,6 +30,9 @@ export default async function PlaceHubPage({ params }: { params: { placeId: stri
       <header>
         <h1 className="text-2xl font-bold">{place.name}</h1>
         <p className="text-sm text-muted-foreground">{place.address}</p>
+        <Link href={`/create?placeId=${params.placeId}`} className="text-xs text-primary underline">
+          Share generated itinerary as a post
+        </Link>
       </header>
       <PlaceHubClient
         apiKey={apiKey}

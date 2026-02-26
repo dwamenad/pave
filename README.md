@@ -1,82 +1,93 @@
-# One Click Away (MVP)
+# One Click Away (Social Itinerary MVP)
 
-One Click Away turns social place inspiration into a practical trip plan with maps, budget filters, share links, and group voting.
+One Click Away turns social place inspiration into practical trip plans and now includes a social feed where people publish, remix, and discuss itineraries.
 
-## Architecture Plan (Brief)
+## What this MVP now supports
 
-1. Next.js App Router app with API routes for Places, trips, and voting.
-2. Google Places provider abstraction with DB-backed TTL caching.
-3. Place Hub pages with map/list tabs for Eat/Stay/Do and budget/radius filters.
-4. Deterministic itinerary generator persisted in Postgres via Prisma.
-5. Public trip links and invite-token voting links.
-6. Nearby Now mode for no-login mobile usage.
+- Place search + Place Hub (`/place/[placeId]`) with Eat/Stay/Do and budget filters
+- Trip builder with drag/drop reorder and day moves
+- Public trip links and invite-token group voting
+- Social feed with itinerary-linked posts (`/feed`)
+- User profiles (`/profile/[username]`)
+- Post detail with comments, likes, saves, and reports (`/post/[postId]`)
+- Remix flow: clone someone else's trip into your own editable copy
+- Personalized trip creation from links + caption + preferences (`/create`)
+- Server-generated PDF export for trips
 
 ## Stack
 
-- Next.js 14+ (App Router) + TypeScript
-- Tailwind CSS + shadcn-style UI components
+- Next.js 14 (App Router) + TypeScript
+- Tailwind CSS + shadcn-style UI primitives
 - Postgres + Prisma
-- Google Maps Platform (Maps JS + Places APIs)
+- Google Maps Platform (Maps JS + Places)
+- Auth.js (next-auth) with Google OAuth
 
-## Required Google APIs
+## Required APIs (Google Cloud)
 
-Enable these in Google Cloud Console:
+Enable:
+
 - Maps JavaScript API
 - Places API (New)
-- Place Photos (served by Places API media endpoint)
 
-## API Key Setup and Restrictions
+For OAuth sign-in:
 
-Create two keys:
+- Create OAuth Client ID (Web application)
 
-1. `GOOGLE_MAPS_API_KEY_PUBLIC`
-- Use for browser map rendering only.
-- Restrict by HTTP referrer (your domains).
-- Restrict API usage to Maps JavaScript API.
+## Environment variables
 
-2. `GOOGLE_MAPS_API_KEY_SERVER`
-- Use for server-side Places calls.
-- Restrict by server IP (or secure runtime environment controls).
-- Restrict API usage to Places API.
-
-## Environment Variables
-
-Create both `.env` and `.env.local` from `.env.example`:
+Copy `.env.example` to both `.env` and `.env.local`:
 
 ```bash
 cp .env.example .env
 cp .env.example .env.local
 ```
 
-Set values in both files:
+Required values:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/one_click_away?schema=public"
+DATABASE_URL="postgresql://<user>@127.0.0.1:5432/one_click_away?schema=public"
 GOOGLE_MAPS_API_KEY_PUBLIC="your_referrer_restricted_maps_js_key"
-GOOGLE_MAPS_API_KEY_SERVER="your_server_restricted_places_key"
+GOOGLE_MAPS_API_KEY_SERVER="your_server_places_key"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
 RATE_LIMIT_WINDOW_MS="60000"
 RATE_LIMIT_MAX_REQUESTS="60"
+NEXTAUTH_SECRET="long-random-secret"
+GOOGLE_CLIENT_ID="google-oauth-client-id"
+GOOGLE_CLIENT_SECRET="google-oauth-client-secret"
 ```
 
-## Install and Run
+## Setup
 
 ```bash
 pnpm install
 pnpm prisma:generate
-pnpm prisma:migrate --name init
+pnpm prisma:migrate --name social_mvp
 pnpm prisma:seed
 pnpm dev
 ```
 
-## Prisma Scripts
+## Core routes
 
-This project uses Prisma with `prisma/schema.prisma` and `prisma/seed.ts`.
+- `/` planner landing
+- `/feed` social feed
+- `/create` personalized trip creation + optional publish
+- `/post/[postId]` post detail + comments
+- `/profile/[username]` user profile
+- `/trip/[slug]` trip editor + share + remix + export PDF
+- `/nearby` nearby now mode
 
-## Seed Data
+## Key API routes
 
-The seed script creates `accra-weekend-sample` so you can visit:
-- `/trip/accra-weekend-sample`
+- `GET /api/feed`
+- `POST /api/posts`
+- `GET /api/posts/[postId]`
+- `POST /api/posts/[postId]/like`
+- `POST /api/posts/[postId]/save`
+- `GET/POST /api/posts/[postId]/comments`
+- `POST /api/reports`
+- `POST /api/trips/[tripId]/remix`
+- `POST /api/trips/[tripId]/export/pdf`
+- `POST /api/links/metadata`
 
 ## Tests
 
@@ -84,21 +95,16 @@ The seed script creates `accra-weekend-sample` so you can visit:
 pnpm test
 ```
 
-Included tests:
-- Itinerary scoring determinism and ranking
-- Provider interface mock contract
+Includes:
 
-## MVP Routes
-
-- `/` Landing + place search + social text parsing
-- `/place/[placeId]` Place Hub with map, tabs, budget/radius, and trip creation
-- `/trip/[slug]` Itinerary builder, share links, optional group voting via token
-- `/nearby` Nearby Now mode
+- itinerary scoring tests
+- provider interface contract test
+- feed ranking scoring test
+- moderation helper tests
+- link metadata hint extraction test
 
 ## Notes
 
-- No social scraping is implemented.
-- Places calls run server-side through API routes/provider layer.
-- Place details cache TTL: 24h (`PlaceCache`).
-- Nearby search cache TTL: 6h (`NearbyCache`).
-- Basic in-memory rate limiting is applied to public API endpoints.
+- External social links are metadata-parsed best-effort; no authenticated scraping.
+- Public posts appear in feed; unlisted posts are direct-link access only.
+- Basic moderation includes profanity filtering and report/hide behavior.

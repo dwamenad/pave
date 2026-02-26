@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { placesProvider } from "@/lib/providers";
 import { budgetToPriceRange, CATEGORY_TYPES, pickTopPlaces } from "@/lib/itinerary";
-import type { BudgetMode, HubCategory } from "@/lib/types";
+import type { BudgetMode, HubCategory, PreferenceInput } from "@/lib/types";
 import { slugify } from "@/lib/utils";
 
 export async function generateTripPlan(input: {
@@ -12,10 +12,15 @@ export async function generateTripPlan(input: {
   centerLng: number;
   days: number;
   budget: BudgetMode;
+  preferences?: PreferenceInput;
+  authorId?: string;
 }) {
   const used = new Set<string>();
-  const price = budgetToPriceRange(input.budget);
+  const budget = input.preferences?.budget || input.budget;
+  const pace = input.preferences?.pace || "balanced";
+  const price = budgetToPriceRange(budget);
   const nearbyByCategory = new Map<HubCategory, Awaited<ReturnType<typeof placesProvider.nearbySearch>>>();
+  const radiusMeters = pace === "slow" ? 2800 : pace === "packed" ? 5000 : 4000;
 
   for (const category of ["eat", "stay", "do"] as HubCategory[]) {
     const types = CATEGORY_TYPES[category];
@@ -26,7 +31,7 @@ export async function generateTripPlan(input: {
         lat: input.centerLat,
         lng: input.centerLng,
         type,
-        radiusMeters: 4000,
+        radiusMeters,
         ...price
       });
       merged = merged.concat(results);
@@ -45,6 +50,7 @@ export async function generateTripPlan(input: {
       centerLat: input.centerLat,
       centerLng: input.centerLng,
       placeId: input.placeId,
+      authorId: input.authorId,
       days: {
         create: Array.from({ length: input.days }, (_, idx) => ({
           dayIndex: idx + 1
@@ -55,10 +61,12 @@ export async function generateTripPlan(input: {
   });
 
   for (const day of trip.days) {
-    const doPick = pickTopPlaces(nearbyByCategory.get("do") || [], input.centerLat, input.centerLng, 1, used);
+    const doCount = pace === "packed" ? 2 : 1;
+    const doPick = pickTopPlaces(nearbyByCategory.get("do") || [], input.centerLat, input.centerLng, doCount, used);
     doPick.forEach((p) => used.add(p.placeId));
 
-    const eatPick = pickTopPlaces(nearbyByCategory.get("eat") || [], input.centerLat, input.centerLng, 2, used);
+    const eatCount = pace === "slow" ? 1 : 2;
+    const eatPick = pickTopPlaces(nearbyByCategory.get("eat") || [], input.centerLat, input.centerLng, eatCount, used);
     eatPick.forEach((p) => used.add(p.placeId));
 
     const items = [...doPick, ...eatPick];
@@ -115,6 +123,30 @@ export async function generateTripPlan(input: {
 export async function getTripBySlug(slug: string) {
   return db.trip.findUnique({
     where: { slug },
+    include: {
+      remixedInto: {
+        include: {
+          sourceTrip: true
+        },
+        orderBy: {
+          createdAt: "desc"
+        }
+      },
+      days: {
+        include: {
+          items: {
+            orderBy: { orderIndex: "asc" }
+          }
+        },
+        orderBy: { dayIndex: "asc" }
+      }
+    }
+  });
+}
+
+export async function getTripById(id: string) {
+  return db.trip.findUnique({
+    where: { id },
     include: {
       days: {
         include: {

@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 
 export async function getPlaceCache<T>(placeId: string, ttlHours = 24): Promise<T | null> {
   const row = await db.placeCache.findUnique({ where: { placeId } });
@@ -9,10 +10,11 @@ export async function getPlaceCache<T>(placeId: string, ttlHours = 24): Promise<
 }
 
 export async function setPlaceCache(placeId: string, json: unknown) {
+  const payload = json as Prisma.InputJsonValue;
   await db.placeCache.upsert({
     where: { placeId },
-    create: { placeId, json, fetchedAt: new Date() },
-    update: { json, fetchedAt: new Date() }
+    create: { placeId, json: payload, fetchedAt: new Date() },
+    update: { json: payload, fetchedAt: new Date() }
   });
 }
 
@@ -25,9 +27,10 @@ export async function getNearbyCache<T>(cacheKey: string, ttlHours = 6): Promise
 }
 
 export async function setNearbyCache(cacheKey: string, json: unknown) {
+  const payload = json as Prisma.InputJsonValue;
   await db.nearbyCache.upsert({
     where: { cacheKey },
-    create: { cacheKey, json, fetchedAt: new Date() },
-    update: { json, fetchedAt: new Date() }
+    create: { cacheKey, json: payload, fetchedAt: new Date() },
+    update: { json: payload, fetchedAt: new Date() }
   });
 }

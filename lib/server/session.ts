@@ -8,7 +8,7 @@ export async function getOrCreateSessionToken() {
   const cookieStore = cookies();
   const existing = cookieStore.get(COOKIE_NAME)?.value;
   if (existing) {
-    await db.session.upsert({
+    await db.anonymousSession.upsert({
       where: { token: existing },
       update: { lastSeenAt: new Date() },
       create: { token: existing }
@@ -25,6 +25,6 @@ export async function getOrCreateSessionToken() {
     path: "/"
   });
 
-  await db.session.create({ data: { token } });
+  await db.anonymousSession.create({ data: { token } });
   return token;
 }

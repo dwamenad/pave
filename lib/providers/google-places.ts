@@ -27,6 +27,10 @@ function normalizePlace(p: any): PlaceCard {
 }
 
 async function placesFetch(path: string, init: RequestInit & { fieldMask?: string } = {}) {
+  if (!env.GOOGLE_MAPS_API_KEY_SERVER) {
+    throw new Error("Missing GOOGLE_MAPS_API_KEY_SERVER");
+  }
+
   const headers = new Headers(init.headers);
   headers.set("Content-Type", "application/json");
   headers.set("X-Goog-Api-Key", env.GOOGLE_MAPS_API_KEY_SERVER);

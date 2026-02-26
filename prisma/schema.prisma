@@ -7,20 +7,116 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum PostVisibility {
+  PUBLIC
+  UNLISTED
+}
+
+enum PostStatus {
+  ACTIVE
+  HIDDEN
+  DELETED
+}
+
+enum ModerationStatus {
+  ACTIVE
+  HIDDEN
+  DELETED
+}
+
+enum ReportTargetType {
+  POST
+  COMMENT
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWED
+  RESOLVED
+}
+
+enum ExportFormat {
+  PDF
+}
+
+enum ExportStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
 model User {
-  id        String    @id @default(cuid())
-  email     String?   @unique
-  createdAt DateTime  @default(now())
-  sessions  Session[]
+  id             String             @id @default(cuid())
+  email          String?            @unique
+  emailVerified  DateTime?
+  name           String?
+  image          String?
+  username       String?            @unique
+  bio            String?
+  preferences    Json?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  accounts       Account[]
+  sessions       Session[]
+  posts          Post[]
+  comments       Comment[]
+  postLikes      PostLike[]
+  postSaves      PostSave[]
+  reports        Report[]
+  authoredTrips  Trip[]
+  remixes        TripRemix[]        @relation("TripRemixByUser")
+  exports        TripExport[]
+  anonSessions   AnonymousSession[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model AnonymousSession {
   id         String   @id @default(cuid())
   token      String   @unique
   userId     String?
   createdAt  DateTime @default(now())
   lastSeenAt DateTime @default(now())
-  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([token])
 }
@@ -32,21 +128,31 @@ model Trip {
   centerLat   Float
   centerLng   Float
   placeId     String?
+  authorId    String?
+  isPublic    Boolean       @default(true)
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  author      User?         @relation(fields: [authorId], references: [id], onDelete: SetNull)
   days        TripDay[]
   invites     GroupInvite[]
   votes       Vote[]
+  posts       Post[]
+  exports     TripExport[]
+  remixedFrom TripRemix[]   @relation("SourceTrip")
+  remixedInto TripRemix[]   @relation("RemixedTrip")
 
   @@index([slug])
+  @@index([authorId])
 }
 
 model TripDay {
   id       String     @id @default(cuid())
   tripId   String
   dayIndex Int
-  trip     Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
-  items    TripItem[]
+
+  trip  Trip       @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  items TripItem[]
 
   @@unique([tripId, dayIndex])
   @@index([tripId])
@@ -62,7 +168,8 @@ model TripItem {
   category   String
   orderIndex Int
   notes      String?
-  tripDay    TripDay  @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
+
+  tripDay TripDay @relation(fields: [tripDayId], references: [id], onDelete: Cascade)
 
   @@index([tripDayId])
   @@index([placeId])
@@ -73,38 +180,179 @@ model GroupInvite {
   tripId    String
   token     String   @unique
   createdAt DateTime @default(now())
-  trip      Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   @@index([tripId])
   @@index([token])
 }
 
 model Vote {
-  id           String   @id @default(cuid())
-  tripId       String
+  id            String   @id @default(cuid())
+  tripId        String
   tokenOrUserId String
-  placeId      String
-  voteValue    Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  trip         Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  placeId       String
+  voteValue     Int
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  trip Trip @relation(fields: [tripId], references: [id], onDelete: Cascade)
 
   @@unique([tripId, tokenOrUserId, placeId])
   @@index([tripId, placeId])
 }
 
 model PlaceCache {
-  placeId    String   @id
-  json       Json
-  fetchedAt  DateTime @default(now())
+  placeId   String   @id
+  json      Json
+  fetchedAt DateTime @default(now())
 
   @@index([fetchedAt])
 }
 
 model NearbyCache {
-  cacheKey   String   @id
-  json       Json
-  fetchedAt  DateTime @default(now())
+  cacheKey  String   @id
+  json      Json
+  fetchedAt DateTime @default(now())
 
   @@index([fetchedAt])
+}
+
+model Post {
+  id               String         @id @default(cuid())
+  authorId         String
+  tripId           String
+  caption          String
+  mediaUrl         String?
+  visibility       PostVisibility @default(PUBLIC)
+  destinationLabel String?
+  status           PostStatus     @default(ACTIVE)
+  tags             String[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  author      User             @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  trip        Trip             @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  sourceLinks PostSourceLink[]
+  likes       PostLike[]
+  saves       PostSave[]
+  comments    Comment[]
+  reports     Report[]
+
+  @@index([authorId, createdAt])
+  @@index([status, visibility, createdAt])
+}
+
+model PostSourceLink {
+  id           String   @id @default(cuid())
+  postId       String?
+  url          String
+  domain       String
+  title        String?
+  description  String?
+  thumbnailUrl String?
+  parsedHints  String[]
+  fetchedAt    DateTime @default(now())
+
+  post Post? @relation(fields: [postId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([domain])
+}
+
+model PostLike {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+}
+
+model PostSave {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+}
+
+model Comment {
+  id        String           @id @default(cuid())
+  postId    String
+  authorId  String
+  body      String
+  status    ModerationStatus @default(ACTIVE)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  post    Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author  User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  reports Report[]
+
+  @@index([postId, createdAt])
+  @@index([authorId])
+}
+
+model Report {
+  id         String           @id @default(cuid())
+  targetType ReportTargetType
+  targetId   String
+  reporterId String
+  reason     String
+  status     ReportStatus     @default(OPEN)
+  postId     String?
+  commentId  String?
+  createdAt  DateTime         @default(now())
+
+  reporter User     @relation(fields: [reporterId], references: [id], onDelete: Cascade)
+  post     Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment  Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@index([targetType, targetId])
+  @@index([status, createdAt])
+  @@index([reporterId])
+}
+
+model TripRemix {
+  id           String   @id @default(cuid())
+  sourceTripId String
+  remixedTripId String
+  remixedById  String
+  createdAt    DateTime @default(now())
+
+  sourceTrip  Trip @relation("SourceTrip", fields: [sourceTripId], references: [id], onDelete: Cascade)
+  remixedTrip Trip @relation("RemixedTrip", fields: [remixedTripId], references: [id], onDelete: Cascade)
+  remixedBy   User @relation("TripRemixByUser", fields: [remixedById], references: [id], onDelete: Cascade)
+
+  @@unique([sourceTripId, remixedTripId])
+  @@index([remixedById])
+  @@index([createdAt])
+}
+
+model TripExport {
+  id            String       @id @default(cuid())
+  tripId         String
+  requestedById  String?
+  format         ExportFormat
+  status         ExportStatus @default(PENDING)
+  filePathOrUrl  String?
+  error          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  trip        Trip  @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  requestedBy User? @relation(fields: [requestedById], references: [id], onDelete: SetNull)
+
+  @@index([tripId, createdAt])
+  @@index([requestedById])
 }

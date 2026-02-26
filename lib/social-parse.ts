@@ -19,12 +19,12 @@ function extractHints(text: string) {
   return Array.from(hints).slice(0, 8);
 }
 
-export async function parseSocialIntent(input: string): Promise<{
+export async function parseSocialIntent(input: string, metadataTexts: string[] = []): Promise<{
   hints: string[];
   resolved?: PlaceSuggestion;
   ambiguous: PlaceSuggestion[];
 }> {
-  const hints = extractHints(input);
+  const hints = extractHints([input, ...metadataTexts].join(" "));
   const direct = hints[0] || input.trim();
   if (!direct) {
     return { hints: [], ambiguous: [] };

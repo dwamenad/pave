@@ -15,36 +15,64 @@ export function LandingForm() {
   const [sessionToken] = useState(() => crypto.randomUUID());
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [socialInput, setSocialInput] = useState("");
+  const [linksInput, setLinksInput] = useState("");
   const [parseResult, setParseResult] = useState<{ hints: string[]; ambiguous: Suggestion[]; resolved?: Suggestion } | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const canBuild = useMemo(() => !!suggestions[0] || !!parseResult?.resolved || parseResult?.ambiguous?.length, [parseResult, suggestions]);
 
   async function onSearchChange(value: string) {
     setQuery(value);
+    setError("");
     if (value.length < 2) {
       setSuggestions([]);
       return;
     }
 
-    const response = await fetch(`/api/search/autocomplete?q=${encodeURIComponent(value)}&sessionToken=${sessionToken}`);
-    const data = await response.json();
-    setSuggestions(data.suggestions || []);
+    try {
+      const response = await fetch(`/api/search/autocomplete?q=${encodeURIComponent(value)}&sessionToken=${sessionToken}`);
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : { suggestions: [] };
+      if (!response.ok) {
+        setError(data.error || "Failed to load suggestions.");
+      }
+      setSuggestions(data.suggestions || []);
+    } catch {
+      setSuggestions([]);
+      setError("Failed to load suggestions.");
+    }
   }
 
   async function parseSocial() {
     setLoading(true);
+    setError("");
     try {
+      const links = linksInput
+        .split(/\n|,/)
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .slice(0, 5);
+
       const response = await fetch("/api/social/parse", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: socialInput.slice(0, 3000) })
+        body: JSON.stringify({
+          input: socialInput.slice(0, 3000),
+          links
+        })
       });
-      const data = await response.json();
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : { hints: [], ambiguous: [] };
+      if (!response.ok) {
+        setError(data.error || "Failed to parse social input.");
+      }
       setParseResult(data);
       if (data.resolved) {
         setSuggestions([data.resolved]);
       }
+    } catch {
+      setError("Failed to parse social input.");
     } finally {
       setLoading(false);
     }
@@ -69,6 +97,11 @@ export function LandingForm() {
       <div className="space-y-2">
         <label className="text-sm font-medium">Paste 1-5 social links or caption text</label>
         <Textarea
+          value={linksInput}
+          onChange={(e) => setLinksInput(e.target.value)}
+          placeholder="Paste social links (one per line)"
+        />
+        <Textarea
           value={socialInput}
           onChange={(e) => setSocialInput(e.target.value)}
           placeholder="Paste Instagram/TikTok/YouTube links or text like: best coffee in Paris near Eiffel Tower"
@@ -81,6 +114,7 @@ export function LandingForm() {
       {parseResult?.hints?.length ? (
         <p className="text-xs text-muted-foreground">Detected hints: {parseResult.hints.join(", ")}</p>
       ) : null}
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
 
       {parseResult?.ambiguous?.length ? (
         <div className="space-y-2">
