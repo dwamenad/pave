@@ -1,48 +1,106 @@
-# One Click Away (Social Itinerary MVP)
+# One Click Away
 
-One Click Away turns social place inspiration into practical trip plans and now includes a social feed where people publish, remix, and discuss itineraries.
+One Click Away is a social itinerary app where users can discover trip ideas, generate personalized itineraries from social context, and publish/share those itineraries with the community.
 
-## What this MVP now supports
+This repo combines two experiences in one product:
 
-- Place search + Place Hub (`/place/[placeId]`) with Eat/Stay/Do and budget filters
-- Trip builder with drag/drop reorder and day moves
-- Public trip links and invite-token group voting
-- Social feed with itinerary-linked posts (`/feed`)
-- User profiles (`/profile/[username]`)
-- Post detail with comments, likes, saves, and reports (`/post/[postId]`)
-- Remix flow: clone someone else's trip into your own editable copy
-- Personalized trip creation from links + caption + preferences (`/create`)
-- Server-generated PDF export for trips
+1. **Trip planning utility**: place search, itinerary builder, map/list views, budget filters, sharing, and group voting.
+2. **Social layer**: feed, profiles, post detail, comments, likes/saves, remix, reporting/moderation, and PDF export.
 
-## Stack
+## Product scope (current MVP)
 
-- Next.js 14 (App Router) + TypeScript
-- Tailwind CSS + shadcn-style UI primitives
-- Postgres + Prisma
-- Google Maps Platform (Maps JS + Places)
-- Auth.js (next-auth) with Google OAuth
+### Planner features
 
-## Required APIs (Google Cloud)
+- Search destination/place and open a Place Hub (`/place/[placeId]`)
+- Browse nearby options by category: Eat / Stay / Do
+- Budget filters (Budget / Mid / Luxury)
+- Build and edit 1-3 day itineraries
+- Reorder/move/remove trip items
+- Public share links and invite-token voting
+- Nearby mode for quick no-login discovery (`/nearby`)
 
-Enable:
+### Social features
 
-- Maps JavaScript API
-- Places API (New)
+- Publish itinerary-linked posts with caption + optional media URL
+- Public feed (`/feed`) and profile pages (`/profile/[username]`)
+- Post detail pages (`/post/[postId]`)
+- Likes, saves, and comments
+- Report + hide baseline moderation
+- Remix any itinerary into your own editable trip
+- Server-generated PDF export from trip pages
 
-For OAuth sign-in:
+### Personalized generation from social context
 
-- Create OAuth Client ID (Web application)
+- Paste 1-5 social links + text context
+- Metadata fetch (title/description/OG where available)
+- Best-effort location hint extraction from text + links
+- Location confirmation via Places suggestions when ambiguous
+- Preference-driven trip generation (budget, pace, days, tags)
 
-## Environment variables
+## Tech stack
 
-Copy `.env.example` to both `.env` and `.env.local`:
+- **Framework**: Next.js 14 (App Router), React 18, TypeScript
+- **Styling/UI**: Tailwind CSS + lightweight shadcn-style components
+- **Database/ORM**: PostgreSQL + Prisma
+- **Maps/Places**: Google Maps JS + Places APIs
+- **Auth**: Auth.js (`next-auth`) with Google OAuth
+- **PDF**: `pdf-lib` server-side generation
+- **Testing**: Vitest
+
+## High-level architecture
+
+### Backend modules
+
+- `lib/providers/*`: Google Places provider abstraction
+- `lib/server/trip-service.ts`: itinerary generation + trip retrieval
+- `lib/server/social-service.ts`: feed/profile/post retrieval and shaping
+- `lib/server/link-metadata.ts`: URL metadata + parsing helpers
+- `lib/server/moderation.ts`: profanity + tag normalization
+- `lib/server/export-service.ts`: PDF generation + export records
+- `lib/auth.ts`: auth/session helpers
+
+### API routes
+
+- Trips: create/edit/share/vote/remix/export
+- Social: feed/posts/likes/saves/comments/reports
+- Metadata parsing: social parse + link metadata
+- Places: autocomplete/details/nearby/photo proxy
+- Auth: `next-auth` handler
+
+### Data model groups (Prisma)
+
+- **Auth/identity**: `User`, `Account`, `Session`, `VerificationToken`, `AnonymousSession`
+- **Planner**: `Trip`, `TripDay`, `TripItem`, `GroupInvite`, `Vote`
+- **Places cache**: `PlaceCache`, `NearbyCache`
+- **Social**: `Post`, `PostSourceLink`, `PostLike`, `PostSave`, `Comment`, `Report`
+- **Reuse/export**: `TripRemix`, `TripExport`
+
+## Routes
+
+### Core pages
+
+- `/` planner landing + social parse
+- `/place/[placeId]` place hub
+- `/trip/[slug]` itinerary builder + share + remix + export
+- `/nearby` nearby-now mode
+
+### Social pages
+
+- `/feed` community itinerary feed
+- `/create` social-context itinerary generation + optional publish
+- `/post/[postId]` post detail and comments
+- `/profile/[username]` user posts + saved posts
+
+## Environment configuration
+
+Create both `.env` and `.env.local` from `.env.example`:
 
 ```bash
 cp .env.example .env
 cp .env.example .env.local
 ```
 
-Required values:
+Required variables:
 
 ```env
 DATABASE_URL="postgresql://<user>@127.0.0.1:5432/one_click_away?schema=public"
@@ -56,7 +114,16 @@ GOOGLE_CLIENT_ID="google-oauth-client-id"
 GOOGLE_CLIENT_SECRET="google-oauth-client-secret"
 ```
 
-## Setup
+### Google key restrictions (recommended)
+
+- `GOOGLE_MAPS_API_KEY_PUBLIC`
+  - Restrict by **HTTP referrer** (`http://localhost:3000/*` for dev)
+  - API restriction: **Maps JavaScript API**
+- `GOOGLE_MAPS_API_KEY_SERVER`
+  - API restriction: **Places API**
+  - For local dev, keep app restriction relaxed first; tighten later
+
+## Local development
 
 ```bash
 pnpm install
@@ -66,45 +133,72 @@ pnpm prisma:seed
 pnpm dev
 ```
 
-## Core routes
+Open:
 
-- `/` planner landing
-- `/feed` social feed
-- `/create` personalized trip creation + optional publish
-- `/post/[postId]` post detail + comments
-- `/profile/[username]` user profile
-- `/trip/[slug]` trip editor + share + remix + export PDF
-- `/nearby` nearby now mode
+- `http://localhost:3000`
+- `http://localhost:3000/feed`
+- `http://localhost:3000/create`
 
-## Key API routes
+## Database notes
 
-- `GET /api/feed`
-- `POST /api/posts`
-- `GET /api/posts/[postId]`
-- `POST /api/posts/[postId]/like`
-- `POST /api/posts/[postId]/save`
-- `GET/POST /api/posts/[postId]/comments`
-- `POST /api/reports`
-- `POST /api/trips/[tripId]/remix`
-- `POST /api/trips/[tripId]/export/pdf`
-- `POST /api/links/metadata`
+This project expects a running Postgres instance.
 
-## Tests
+If you run a local cluster manually (example):
+
+```bash
+initdb -D "$HOME/.postgres-oca"
+pg_ctl -D "$HOME/.postgres-oca" -l "$HOME/.postgres-oca/server.log" start
+createdb one_click_away
+```
+
+Connection readiness:
+
+```bash
+pg_isready -h 127.0.0.1 -p 5432
+```
+
+## Testing
 
 ```bash
 pnpm test
 ```
 
-Includes:
+Current automated coverage includes:
 
-- itinerary scoring tests
-- provider interface contract test
-- feed ranking scoring test
-- moderation helper tests
-- link metadata hint extraction test
+- itinerary scoring behavior
+- provider interface contract
+- feed ranking scorer
+- moderation utilities
+- link metadata hint extraction
 
-## Notes
+## Build
 
-- External social links are metadata-parsed best-effort; no authenticated scraping.
-- Public posts appear in feed; unlisted posts are direct-link access only.
-- Basic moderation includes profanity filtering and report/hide behavior.
+```bash
+pnpm build
+pnpm start
+```
+
+## Security and policy notes
+
+- No authenticated scraping of Instagram/TikTok/Twitter content.
+- Social links are handled as best-effort metadata + URL/text hints.
+- Server key is never intentionally exposed to browser clients.
+- Basic rate limiting is applied on public endpoints.
+- MVP moderation: profanity filtering + user reports + hide behavior.
+
+## Known MVP constraints
+
+- No real-time comments/votes (polling/refresh model)
+- No media upload pipeline (external URL media only)
+- No advanced admin dashboard yet
+- Feed ranking is deterministic and simple (recency + engagement weighted)
+
+## Deploy considerations
+
+Before production launch:
+
+- Enforce strict Google key restrictions
+- Set robust `NEXTAUTH_SECRET`
+- Configure production Postgres + SSL
+- Add proper object storage if moving beyond URL-based media
+- Add observability for API errors and moderation activity
