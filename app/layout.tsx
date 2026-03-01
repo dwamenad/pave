@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { Plus_Jakarta_Sans } from "next/font/google";
-import { Compass, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Providers } from "@/components/providers";
 import { AuthControls } from "@/components/auth-controls";
+import { PaveMark } from "@/components/pave-mark";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -14,8 +15,16 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "One Click Away",
-  description: "Turn social place ideas into ready-to-use trip plans"
+  title: {
+    default: "Pave",
+    template: "%s | Pave"
+  },
+  description: "Turn social place ideas into ready-to-use trip plans with Pave",
+  icons: {
+    icon: "/icon.svg",
+    shortcut: "/icon.svg",
+    apple: "/apple-icon.svg"
+  }
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -29,9 +38,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 <div className="flex items-center gap-8">
                   <Link href="/" className="flex items-center gap-2">
                     <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/15 text-primary">
-                      <Compass className="h-5 w-5" />
+                      <PaveMark className="h-5 w-5" />
                     </span>
-                    <span className="text-lg font-extrabold tracking-tight">One Click Away</span>
+                    <span className="text-lg font-extrabold tracking-tight">Pave</span>
                   </Link>
                   <nav className="hidden items-center gap-6 text-sm font-medium text-muted-foreground md:flex">
                     <Link href="/feed" className="hover:text-foreground">Explore</Link>

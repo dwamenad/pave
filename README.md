@@ -1,6 +1,6 @@
-# One Click Away
+# Pave
 
-One Click Away is a social itinerary app where users can discover trip ideas, generate personalized itineraries from social context, and publish/share those itineraries with the community.
+Pave is a social itinerary app where users can discover trip ideas, generate personalized itineraries from social context, and publish/share those itineraries with the community.
 
 This repo combines two experiences in one product:
 

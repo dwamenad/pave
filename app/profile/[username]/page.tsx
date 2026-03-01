@@ -33,7 +33,7 @@ export default async function ProfilePage({ params }: { params: { username: stri
               <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
                 <span className="inline-flex items-center gap-1">
                   <CalendarDays className="h-3.5 w-3.5" />
-                  Joined One Click Away
+                  Joined Pave
                 </span>
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
