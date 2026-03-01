@@ -25,12 +25,12 @@ export default async function PlaceHubPage({ params }: { params: { placeId: stri
   const apiKey = process.env.GOOGLE_MAPS_API_KEY_PUBLIC || "";
 
   return (
-    <div className="space-y-4">
-      <Link href="/" className="text-sm text-primary underline">Back</Link>
-      <header>
-        <h1 className="text-2xl font-bold">{place.name}</h1>
+    <div className="space-y-5">
+      <Link href="/" className="text-sm font-semibold text-primary hover:underline">Back</Link>
+      <header className="surface-card p-5">
+        <h1 className="text-3xl font-extrabold tracking-tight">{place.name}</h1>
         <p className="text-sm text-muted-foreground">{place.address}</p>
-        <Link href={`/create?placeId=${params.placeId}`} className="text-xs text-primary underline">
+        <Link href={`/create?placeId=${params.placeId}`} className="mt-1 inline-block text-xs font-semibold text-primary underline">
           Share generated itinerary as a post
         </Link>
       </header>
