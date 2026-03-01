@@ -125,6 +125,11 @@ GOOGLE_CLIENT_SECRET="google-oauth-client-secret"
 
 ## Local development
 
+Tooling versions used by this repo:
+
+- Node.js `22.x` (see `.nvmrc`)
+- pnpm `10.x`
+
 ```bash
 pnpm install
 pnpm prisma:generate
