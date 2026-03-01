@@ -1,7 +1,9 @@
 import { z } from "zod";
 
 const envSchema = z.object({
-  DATABASE_URL: z.string().optional().default("postgresql://postgres:postgres@127.0.0.1:5432/one_click_away?schema=public"),
+  DATABASE_URL: z
+    .string()
+    .min(1, "DATABASE_URL is required. Set it in .env and .env.local."),
   GOOGLE_MAPS_API_KEY_PUBLIC: z.string().optional().default(""),
   GOOGLE_MAPS_API_KEY_SERVER: z.string().optional().default(""),
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
