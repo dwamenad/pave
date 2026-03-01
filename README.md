@@ -128,7 +128,7 @@ GOOGLE_CLIENT_SECRET="google-oauth-client-secret"
 ```bash
 pnpm install
 pnpm prisma:generate
-pnpm prisma:migrate --name social_mvp
+pnpm prisma:migrate
 pnpm prisma:seed
 pnpm dev
 ```
