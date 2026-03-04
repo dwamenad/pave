@@ -387,6 +387,24 @@ export async function getPostDetail(postId: string, userId?: string): Promise<Po
       author: true,
       trip: {
         include: {
+          days: {
+            include: {
+              items: {
+                select: {
+                  id: true,
+                  name: true,
+                  category: true,
+                  notes: true
+                },
+                orderBy: {
+                  orderIndex: "asc"
+                }
+              }
+            },
+            orderBy: {
+              dayIndex: "asc"
+            }
+          },
           _count: {
             select: {
               days: true
@@ -444,7 +462,17 @@ export async function getPostDetail(postId: string, userId?: string): Promise<Po
       id: post.trip.id,
       slug: post.trip.slug,
       title: post.trip.title,
-      daysCount: post.trip._count.days
+      daysCount: post.trip._count.days,
+      daysPreview: post.trip.days.map((day) => ({
+        id: day.id,
+        dayIndex: day.dayIndex,
+        items: day.items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          category: item.category,
+          notes: item.notes
+        }))
+      }))
     },
     counts: {
       likes: post._count.likes,

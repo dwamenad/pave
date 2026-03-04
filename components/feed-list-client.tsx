@@ -1,8 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { PostFeedCard } from "@/components/post-feed-card";
+import { EmptyState } from "@/components/social/empty-state";
 import type { FeedSource, PostSummary } from "@/lib/types";
 
 type Props = {
@@ -65,18 +66,34 @@ export function FeedListClient({ initialItems, initialNextCursor, source }: Prop
   return (
     <div className="space-y-8">
       {hasItems ? (
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="social-feed-grid">
           {items.map((post) => (
             <PostFeedCard key={post.id} post={post} />
           ))}
         </div>
       ) : (
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm">
-          No posts yet. Publish your first itinerary to start the feed.
-        </div>
+        <EmptyState
+          title="No posts yet"
+          description="Publish your first itinerary to start the feed and get discovered."
+          icon={<Sparkles className="h-4 w-4" />}
+        />
       )}
 
-      {error ? <p className="text-center text-sm text-red-600">{error}</p> : null}
+      {error ? (
+        <div className="flex items-center justify-center gap-3 text-sm text-red-600">
+          <span>{error}</span>
+          {nextCursor ? (
+            <button
+              className="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-1 font-semibold text-red-600 hover:bg-red-50"
+              onClick={loadMore}
+              type="button"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Retry
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {nextCursor ? (
         <div className="flex justify-center">

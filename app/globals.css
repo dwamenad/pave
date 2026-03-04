@@ -34,3 +34,49 @@ a {
 .pill-chip {
   @apply inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-xs font-semibold;
 }
+
+.social-hero-title {
+  @apply text-3xl font-extrabold tracking-tight text-slate-900 md:text-4xl;
+}
+
+.social-hero-subtitle {
+  @apply mt-2 text-base text-slate-600 md:text-lg;
+}
+
+.social-shell {
+  @apply space-y-8;
+}
+
+.social-rail {
+  @apply w-full space-y-6 lg:w-80;
+}
+
+.social-card {
+  @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+}
+
+.social-chip-row {
+  @apply flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden;
+}
+
+.social-feed-grid {
+  @apply grid grid-cols-1 gap-6 md:grid-cols-2;
+}
+
+.social-empty-panel {
+  @apply rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500 shadow-sm;
+}
+
+.social-floating-gradient {
+  @apply bg-gradient-to-tr from-primary/30 via-sky-300/20 to-teal-200/20;
+}
+
+.social-sticky-rail {
+  @apply lg:sticky lg:top-24;
+}
+
+@media (max-width: 1023px) {
+  .social-rail {
+    @apply order-2;
+  }
+}

@@ -104,7 +104,21 @@ export type CommentDTO = {
   };
 };
 
-export type PostDetail = PostSummary & {
+export type TripDayPreview = {
+  id: string;
+  dayIndex: number;
+  items: Array<{
+    id: string;
+    name: string;
+    category: string;
+    notes?: string | null;
+  }>;
+};
+
+export type PostDetail = Omit<PostSummary, "trip"> & {
+  trip: PostSummary["trip"] & {
+    daysPreview: TripDayPreview[];
+  };
   sourceLinks: SourceLinkMetadata[];
   comments: CommentDTO[];
 };

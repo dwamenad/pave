@@ -1,5 +1,16 @@
 import Link from "next/link";
-import { Compass, Rocket, ShieldCheck, TrendingUp, UserRoundCheck } from "lucide-react";
+import {
+  Compass,
+  Crown,
+  Mountain,
+  PiggyBank,
+  Rocket,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  UserRound,
+  UserRoundCheck
+} from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { buildTrendingDestinations, derivePlannerRole } from "@/lib/feed-view-model";
 import { trackEventWithActor, trackFeedImpressions } from "@/lib/server/events";
@@ -7,6 +18,8 @@ import { getOrCreateSessionToken } from "@/lib/server/session";
 import { getFeed } from "@/lib/server/social-service";
 import type { FeedSource } from "@/lib/types";
 import { FeedListClient } from "@/components/feed-list-client";
+import { PillChip } from "@/components/social/pill-chip";
+import { RailCard } from "@/components/social/rail-card";
 
 export const dynamic = "force-dynamic";
 
@@ -23,11 +36,11 @@ function sourceHref(source: FeedSource) {
 }
 
 const categoryChips = [
-  { label: "All Categories", icon: null as string | null },
-  { label: "Adventure", icon: "hiking" },
-  { label: "Luxury", icon: "diamond" },
-  { label: "Budget", icon: "payments" },
-  { label: "Solo", icon: "person" }
+  { label: "All Categories", icon: <Sparkles className="h-3.5 w-3.5" /> },
+  { label: "Adventure", icon: <Mountain className="h-3.5 w-3.5" /> },
+  { label: "Luxury", icon: <Crown className="h-3.5 w-3.5" /> },
+  { label: "Budget", icon: <PiggyBank className="h-3.5 w-3.5" /> },
+  { label: "Solo", icon: <UserRound className="h-3.5 w-3.5" /> }
 ];
 
 export default async function FeedPage({ searchParams }: { searchParams?: { source?: string } }) {
@@ -103,12 +116,12 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
     }));
 
   return (
-    <div className="space-y-8">
+    <div className="social-shell">
       <div className="flex flex-col gap-8 lg:flex-row">
         <section className="flex-1">
           <div className="mb-8">
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Social Itinerary Feed</h1>
-            <p className="mt-2 text-lg text-slate-600">Discover and remix community-crafted journeys from around the globe.</p>
+            <h1 className="social-hero-title">Social Itinerary Feed</h1>
+            <p className="social-hero-subtitle">Discover and remix community-crafted journeys from around the globe.</p>
           </div>
 
           <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -130,33 +143,19 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             })}
           </div>
 
-          <div className="mb-8 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+          <div className="social-chip-row mb-8">
             {categoryChips.map((chip, idx) => (
-              <button
-                key={chip.label}
-                aria-label={`${chip.label} category`}
-                className={
-                  idx === 0
-                    ? "inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
-                    : "inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-primary"
-                }
-                type="button"
-              >
+              <PillChip key={chip.label} active={idx === 0} icon={chip.icon} aria-label={`${chip.label} category`}>
                 {chip.label}
-              </button>
+              </PillChip>
             ))}
           </div>
 
           <FeedListClient initialItems={feed.items} initialNextCursor={feed.nextCursor} source={source} />
         </section>
 
-        <aside className="w-full space-y-6 lg:w-80">
-          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4 text-primary" />
-              <h2 className="text-lg font-bold text-slate-900">Trending Now</h2>
-            </div>
-
+        <aside className="social-rail">
+          <RailCard title="Trending Now" icon={<TrendingUp className="h-4 w-4 text-primary" />}>
             {trending.length ? (
               <ul className="space-y-4">
                 {trending.map((entry) => (
@@ -185,14 +184,9 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             >
               View All Trends
             </button>
-          </section>
+          </RailCard>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-            <div className="mb-5 flex items-center gap-2">
-              <UserRoundCheck className="h-4 w-4 text-primary" />
-              <h2 className="text-lg font-bold text-slate-900">Top Planners</h2>
-            </div>
-
+          <RailCard title="Top Planners" icon={<UserRoundCheck className="h-4 w-4 text-primary" />}>
             {creators.length ? (
               <ul className="space-y-4">
                 {creators.map((creator) => (
@@ -220,9 +214,9 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             ) : (
               <p className="text-xs text-slate-500">Top planners appear as engagement grows.</p>
             )}
-          </section>
+          </RailCard>
 
-          <section className="overflow-hidden rounded-xl bg-primary p-6 text-center text-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl bg-primary p-6 text-center text-white shadow-sm">
             <Rocket className="mx-auto mb-4 h-8 w-8" />
             <h3 className="text-2xl font-bold">Build Your Own</h3>
             <p className="mt-2 text-sm text-white/85">Create, share, and get remixed by the community!</p>
@@ -234,13 +228,11 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             </Link>
           </section>
 
-          <section className="rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-500 shadow-sm">
-            <div className="mb-2 flex items-center gap-2 text-slate-700">
-              <ShieldCheck className="h-4 w-4 text-primary" />
-              <span className="font-semibold">Safety reminder</span>
-            </div>
-            Report harmful posts in detail view. Blocked users are hidden from your feed.
-          </section>
+          <RailCard title="Safety" icon={<ShieldCheck className="h-4 w-4 text-primary" />}>
+            <p className="text-xs text-slate-500">
+              Report harmful posts in detail view. Blocked users are hidden from your feed.
+            </p>
+          </RailCard>
         </aside>
       </div>
 
