@@ -24,11 +24,11 @@ export default async function TripPage({
   const serializedTrip = JSON.parse(JSON.stringify(trip)) as TripData;
 
   return (
-    <div className="space-y-4">
-      <Link href="/" className="text-sm text-primary underline">Back</Link>
-      <div className="flex items-start justify-between gap-3">
+    <div className="space-y-5">
+      <Link href="/" className="text-sm font-semibold text-primary hover:underline">Back</Link>
+      <div className="surface-card flex items-start justify-between gap-3 p-5">
         <div>
-          <h1 className="text-2xl font-bold">{trip.title}</h1>
+          <h1 className="text-3xl font-extrabold tracking-tight">{trip.title}</h1>
           <p className="text-sm text-muted-foreground">Shareable itinerary</p>
           {trip.remixedInto[0]?.sourceTrip ? (
             <p className="text-xs text-muted-foreground">

@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: 40 33% 98%;
-  --foreground: 210 18% 14%;
+  --background: 190 25% 97%;
+  --foreground: 210 23% 14%;
   --card: 0 0% 100%;
-  --card-foreground: 210 18% 14%;
-  --border: 210 20% 88%;
-  --muted: 36 36% 94%;
-  --muted-foreground: 210 10% 35%;
-  --primary: 174 64% 31%;
+  --card-foreground: 210 23% 14%;
+  --border: 210 22% 87%;
+  --muted: 210 36% 95%;
+  --muted-foreground: 214 12% 42%;
+  --primary: 196 85% 50%;
   --primary-foreground: 0 0% 100%;
 }
 
@@ -20,5 +20,17 @@
 
 body {
   @apply bg-background text-foreground antialiased;
-  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+}
+
+a {
+  @apply transition-colors;
+}
+
+.surface-card {
+  @apply rounded-xl border bg-white shadow-sm;
+}
+
+.pill-chip {
+  @apply inline-flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-xs font-semibold;
 }

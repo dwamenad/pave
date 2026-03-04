@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Compass, Coffee, MapPinned, Utensils } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PlaceCard } from "@/components/place-card";
 import type { PlaceCard as PlaceCardType } from "@/lib/types";
@@ -40,19 +41,29 @@ export function NearbyNow() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border bg-white p-4">
-        <h1 className="text-xl font-bold">Nearby Now</h1>
-        <p className="text-sm text-muted-foreground">Quick picks within roughly 10-15 minutes.</p>
-        <Button onClick={locate} className="mt-3" disabled={loading}>{loading ? "Loading..." : "Use my location"}</Button>
+    <div className="space-y-6">
+      <div className="surface-card overflow-hidden">
+        <div className="bg-gradient-to-r from-primary/15 via-sky-100 to-teal-100 p-5">
+          <h1 className="text-2xl font-extrabold tracking-tight">Nearby Now</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Quick picks within roughly 10-15 minutes.</p>
+          <Button onClick={locate} className="mt-4 rounded-xl font-bold" disabled={loading}>
+            <MapPinned className="mr-2 h-4 w-4" />
+            {loading ? "Loading..." : "Use my location"}
+          </Button>
+        </div>
         {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
       </div>
 
       {data ? (
         <div className="space-y-4">
           {(["eat", "coffee", "do"] as const).map((section) => (
-            <section key={section} className="space-y-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide">{section}</h2>
+            <section key={section} className="surface-card space-y-3 p-4">
+              <h2 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wide">
+                {section === "eat" ? <Utensils className="h-4 w-4 text-primary" /> : null}
+                {section === "coffee" ? <Coffee className="h-4 w-4 text-primary" /> : null}
+                {section === "do" ? <Compass className="h-4 w-4 text-primary" /> : null}
+                {section}
+              </h2>
               <div className="grid gap-2 md:grid-cols-2">
                 {data[section].map((place) => (
                   <PlaceCard key={place.placeId} place={place} />

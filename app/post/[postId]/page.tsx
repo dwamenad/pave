@@ -13,8 +13,12 @@ export default async function PostDetailPage({ params }: { params: { postId: str
   }
 
   return (
-    <div className="space-y-3">
-      <Link href="/feed" className="text-sm text-primary underline">Back to feed</Link>
+    <div className="space-y-5">
+      <Link href="/feed" className="text-sm font-semibold text-primary hover:underline">Back to feed</Link>
+      <section className="rounded-2xl border bg-white p-5">
+        <h1 className="text-2xl font-extrabold tracking-tight">{post.destinationLabel || post.trip.title}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">Itinerary post detail, source links, and remix actions.</p>
+      </section>
       <PostDetailClient initialPost={post} />
     </div>
   );

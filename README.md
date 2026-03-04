@@ -1,6 +1,6 @@
-# One Click Away
+# Pave
 
-One Click Away is a social itinerary app where users can discover trip ideas, generate personalized itineraries from social context, and publish/share those itineraries with the community.
+Pave is a social itinerary app where users can discover trip ideas, generate personalized itineraries from social context, and publish/share those itineraries with the community.
 
 This repo combines two experiences in one product:
 
@@ -125,10 +125,15 @@ GOOGLE_CLIENT_SECRET="google-oauth-client-secret"
 
 ## Local development
 
+Tooling versions used by this repo:
+
+- Node.js `22.x` (see `.nvmrc`)
+- pnpm `10.x`
+
 ```bash
 pnpm install
 pnpm prisma:generate
-pnpm prisma:migrate --name social_mvp
+pnpm prisma:migrate
 pnpm prisma:seed
 pnpm dev
 ```

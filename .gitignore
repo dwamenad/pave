@@ -3,5 +3,6 @@ node_modules
 .env
 .env.local
 coverage
-pnpm-lock.yaml
 .Rhistory
+.tmp-stitch
+tsconfig.tsbuildinfo
