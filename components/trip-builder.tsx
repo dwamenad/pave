@@ -2,8 +2,8 @@
 
 import { useMemo, useState } from "react";
 import type { DragEvent } from "react";
+import { ChevronDown, GripVertical, MapPinned, Plus, ThumbsDown, ThumbsUp, Trash2 } from "lucide-react";
 import { MapView } from "@/components/map-view";
-import { PlaceCard } from "@/components/place-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -29,7 +29,16 @@ export type TripData = {
   }>;
 };
 
-export function TripBuilder({ apiKey, initialTrip, groupToken, initialVotes }: {
+function sortedItems(day: TripData["days"][number]) {
+  return [...day.items].sort((a, b) => a.orderIndex - b.orderIndex);
+}
+
+export function TripBuilder({
+  apiKey,
+  initialTrip,
+  groupToken,
+  initialVotes
+}: {
   apiKey: string;
   initialTrip: TripData;
   groupToken?: string;
@@ -41,6 +50,7 @@ export function TripBuilder({ apiKey, initialTrip, groupToken, initialVotes }: {
   const [addDayId, setAddDayId] = useState(initialTrip.days[0]?.id ?? "");
   const [addQuery, setAddQuery] = useState("");
   const [viewMode, setViewMode] = useState<"both" | "map" | "list">("both");
+
   const places = useMemo(
     () => trip.days.flatMap((day) => day.items.map((item) => ({ ...item, types: [], placeId: item.placeId }))),
     [trip.days]
@@ -138,7 +148,7 @@ export function TripBuilder({ apiKey, initialTrip, groupToken, initialVotes }: {
       const item = fromDay.items.find((i) => i.id === itemId);
       if (!item) return prev;
 
-      const next = {
+      return {
         ...prev,
         days: prev.days.map((day) => {
           if (day.id === fromDay.id) {
@@ -150,7 +160,6 @@ export function TripBuilder({ apiKey, initialTrip, groupToken, initialVotes }: {
           return day;
         })
       };
-      return next;
     });
 
     await move(itemId, dayId);
@@ -176,110 +185,180 @@ export function TripBuilder({ apiKey, initialTrip, groupToken, initialVotes }: {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="rounded-lg border bg-white p-3">
+    <div className="space-y-6">
+      <div className="social-card p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <select className="rounded border px-2 py-1 text-sm" value={addDayId} onChange={(e) => setAddDayId(e.target.value)}>
+          <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={addDayId} onChange={(e) => setAddDayId(e.target.value)}>
             {trip.days.map((day) => (
               <option key={day.id} value={day.id}>
                 Day {day.dayIndex}
               </option>
             ))}
           </select>
-          <Input className="max-w-xs" placeholder="Add place to trip" value={addQuery} onChange={(e) => setAddQuery(e.target.value)} />
-          <Button variant="outline" onClick={addPlace}>Add place</Button>
+
+          <Input
+            className="max-w-xs rounded-lg"
+            placeholder="Add activity or restaurant"
+            value={addQuery}
+            onChange={(e) => setAddQuery(e.target.value)}
+          />
+
+          <Button variant="outline" onClick={addPlace} className="rounded-lg">
+            <Plus className="mr-1 h-3.5 w-3.5" />
+            Add place
+          </Button>
+
           <div className="ml-auto flex gap-1">
-            <Button variant={viewMode === "map" ? "default" : "outline"} onClick={() => setViewMode("map")}>Map</Button>
-            <Button variant={viewMode === "list" ? "default" : "outline"} onClick={() => setViewMode("list")}>List</Button>
-            <Button variant={viewMode === "both" ? "default" : "outline"} onClick={() => setViewMode("both")}>Both</Button>
+            <Button variant={viewMode === "map" ? "default" : "outline"} onClick={() => setViewMode("map")}>
+              Map
+            </Button>
+            <Button variant={viewMode === "list" ? "default" : "outline"} onClick={() => setViewMode("list")}>
+              List
+            </Button>
+            <Button variant={viewMode === "both" ? "default" : "outline"} onClick={() => setViewMode("both")}>
+              Both
+            </Button>
           </div>
         </div>
       </div>
 
       {viewMode !== "list" ? (
-        <MapView apiKey={apiKey} center={{ lat: trip.centerLat, lng: trip.centerLng }} places={places} highlightedPlaceId={focused} onPinClick={setFocused} />
+        <div className="social-card p-3">
+          <MapView
+            apiKey={apiKey}
+            center={{ lat: trip.centerLat, lng: trip.centerLng }}
+            places={places}
+            highlightedPlaceId={focused}
+            onPinClick={setFocused}
+          />
+        </div>
       ) : null}
 
       {viewMode !== "map" ? (
-      <div className="grid gap-4 md:grid-cols-3">
-        {trip.days.map((day) => (
-          <section
-            key={day.id}
-            className="rounded-lg border bg-white p-3"
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => onDrop(e, day.id)}
-          >
-            <h3 className="mb-2 text-sm font-semibold">Day {day.dayIndex}</h3>
-            <div className="space-y-2">
-              {day.items
-                .sort((a, b) => a.orderIndex - b.orderIndex)
-                .map((item, index) => (
-                  <div key={item.id} draggable onDragStart={(e) => onDragStart(e, item.id)}>
-                    <PlaceCard
-                      place={{
-                        placeId: item.placeId,
-                        name: item.name,
-                        lat: item.lat,
-                        lng: item.lng,
-                        types: [item.category],
-                        address: item.notes ?? undefined
-                      }}
-                      focused={focused === item.placeId}
-                      onClick={() => setFocused(item.placeId)}
-                      footer={
-                        <div className="flex items-center justify-between">
-                          <div className="flex gap-1">
-                            <Button
-                              variant="outline"
-                              className="h-7 px-2 text-xs"
-                              onClick={async () => {
-                                if (index === 0) return;
-                                const ids = [...day.items].sort((a, b) => a.orderIndex - b.orderIndex).map((i) => i.id);
-                                [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]];
-                                setTrip((prev) => ({
-                                  ...prev,
-                                  days: prev.days.map((d) =>
-                                    d.id === day.id
-                                      ? {
-                                          ...d,
-                                          items: ids.map((id, idx) => ({
-                                            ...d.items.find((i) => i.id === id)!,
-                                            orderIndex: idx
-                                          }))
-                                        }
-                                      : d
-                                  )
-                                }));
-                                await reorder(day.id, ids);
-                              }}
-                            >
-                              Up
-                            </Button>
-                            <Button
-                              variant="outline"
-                              className="h-7 px-2 text-xs"
-                              onClick={() => removeItem(item.id)}
-                            >
-                              Remove
-                            </Button>
-                          </div>
-                          <div className="flex items-center gap-1 text-xs">
-                            <Button className="h-7 px-2" variant="ghost" onClick={() => vote(item.placeId, 1)} disabled={!groupToken}>Upvote</Button>
-                            <span>{votes[item.placeId]?.up ?? 0}</span>
-                            <Button className="h-7 px-2" variant="ghost" onClick={() => vote(item.placeId, -1)} disabled={!groupToken}>Downvote</Button>
-                            <span>{votes[item.placeId]?.down ?? 0}</span>
+        <div className="space-y-4">
+          {trip.days.map((day) => {
+            const ordered = sortedItems(day);
+
+            return (
+              <section
+                key={day.id}
+                className="social-card overflow-hidden"
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => onDrop(e, day.id)}
+              >
+                <details open={day.dayIndex === 1} className="group">
+                  <summary className="flex cursor-pointer items-center justify-between gap-3 bg-slate-50 px-5 py-4">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-wide text-primary">Day {day.dayIndex}</p>
+                      <h3 className="text-lg font-bold text-slate-900">{ordered.length} planned stops</h3>
+                    </div>
+                    <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+                  </summary>
+
+                  <div className="space-y-3 border-t border-slate-200 p-5">
+                    {ordered.map((item, index) => (
+                      <article
+                        key={item.id}
+                        draggable
+                        onDragStart={(e) => onDragStart(e, item.id)}
+                        className="rounded-xl border border-slate-200 bg-white p-4"
+                      >
+                        <div className="flex items-start gap-3">
+                          <button className="rounded-md p-1 text-slate-300 hover:text-slate-500" type="button" aria-label="Drag item">
+                            <GripVertical className="h-4 w-4" />
+                          </button>
+
+                          <div className="flex-1">
+                            <p className="text-[10px] font-bold uppercase tracking-wide text-primary">{item.category}</p>
+                            <h4 className="text-base font-bold text-slate-900">{item.name}</h4>
+                            {item.notes ? <p className="mt-1 text-sm text-slate-500">{item.notes}</p> : null}
+
+                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                              <Button
+                                variant="outline"
+                                className="h-8 rounded-md px-2 text-xs"
+                                onClick={async () => {
+                                  if (index === 0) return;
+                                  const ids = ordered.map((i) => i.id);
+                                  [ids[index - 1], ids[index]] = [ids[index], ids[index - 1]];
+                                  setTrip((prev) => ({
+                                    ...prev,
+                                    days: prev.days.map((d) =>
+                                      d.id === day.id
+                                        ? {
+                                            ...d,
+                                            items: ids.map((id, idx) => ({
+                                              ...d.items.find((i) => i.id === id)!,
+                                              orderIndex: idx
+                                            }))
+                                          }
+                                        : d
+                                    )
+                                  }));
+                                  await reorder(day.id, ids);
+                                }}
+                              >
+                                Move up
+                              </Button>
+
+                              <Button
+                                variant="outline"
+                                className="h-8 rounded-md px-2 text-xs"
+                                onClick={() => removeItem(item.id)}
+                              >
+                                <Trash2 className="mr-1 h-3.5 w-3.5" />
+                                Remove
+                              </Button>
+
+                              <button
+                                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-500 hover:text-primary"
+                                onClick={() => setFocused(item.placeId)}
+                                type="button"
+                              >
+                                <MapPinned className="h-3.5 w-3.5" />
+                                Focus on map
+                              </button>
+
+                              <div className="ml-auto inline-flex items-center gap-2 text-xs text-slate-500">
+                                <Button
+                                  className="h-7 rounded-md px-2"
+                                  variant="ghost"
+                                  onClick={() => vote(item.placeId, 1)}
+                                  disabled={!groupToken}
+                                >
+                                  <ThumbsUp className="mr-1 h-3.5 w-3.5" />
+                                  {votes[item.placeId]?.up ?? 0}
+                                </Button>
+                                <Button
+                                  className="h-7 rounded-md px-2"
+                                  variant="ghost"
+                                  onClick={() => vote(item.placeId, -1)}
+                                  disabled={!groupToken}
+                                >
+                                  <ThumbsDown className="mr-1 h-3.5 w-3.5" />
+                                  {votes[item.placeId]?.down ?? 0}
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      }
-                    />
+                      </article>
+                    ))}
+
+                    {!ordered.length ? (
+                      <div className="rounded-xl border border-dashed border-slate-200 p-5 text-sm text-slate-500">
+                        No activities yet. Use &quot;Add place&quot; above to populate this day.
+                      </div>
+                    ) : null}
                   </div>
-                ))}
-            </div>
-          </section>
-        ))}
-      </div>
+                </details>
+              </section>
+            );
+          })}
+        </div>
       ) : null}
-      {!groupToken ? <p className="text-xs text-muted-foreground">Open this trip with a group invite token to enable voting.</p> : null}
+
+      {!groupToken ? <p className="text-xs text-slate-500">Open this trip with a group invite token to enable voting.</p> : null}
     </div>
   );
 }

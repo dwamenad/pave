@@ -5,9 +5,18 @@ import { getPostsByUsername } from "@/lib/server/social-service";
 import { PostFeedCard } from "@/components/post-feed-card";
 import { getCurrentUser } from "@/lib/auth";
 import { FollowButton } from "@/components/follow-button";
+import { StatTile } from "@/components/social/stat-tile";
+import { normalizeProfileTab } from "@/lib/profile-view-model";
 
 export const dynamic = "force-dynamic";
-export default async function ProfilePage({ params }: { params: { username: string } }) {
+
+export default async function ProfilePage({
+  params,
+  searchParams
+}: {
+  params: { username: string };
+  searchParams?: { tab?: string };
+}) {
   const viewer = await getCurrentUser();
   const profile = await getPostsByUsername(params.username, viewer?.id);
   if (!profile) {
@@ -15,23 +24,29 @@ export default async function ProfilePage({ params }: { params: { username: stri
   }
 
   const displayName = profile.user.name || profile.user.username || "Traveler";
+  const activeTab = normalizeProfileTab(searchParams?.tab);
+
+  const activeItems = activeTab === "saved" ? profile.savedPosts : profile.posts;
 
   return (
     <div className="space-y-8">
-      <Link href="/feed" className="text-sm font-semibold text-primary hover:underline">Back to feed</Link>
+      <Link href="/feed" className="text-sm font-semibold text-primary hover:underline">
+        Back to feed
+      </Link>
 
-      <section className="surface-card p-6">
-        <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-4">
+      <section className="social-card p-6">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col items-center gap-5 text-center md:flex-row md:items-start md:text-left">
             {profile.user.image ? (
-              <img alt={displayName} className="h-20 w-20 rounded-full border object-cover" src={profile.user.image} />
+              <img alt={displayName} className="h-28 w-28 rounded-full border-4 border-white object-cover shadow-sm" src={profile.user.image} />
             ) : (
-              <div className="h-20 w-20 rounded-full bg-primary/15" />
+              <div className="h-28 w-28 rounded-full bg-primary/15" />
             )}
+
             <div>
-              <h1 className="text-3xl font-bold">{displayName}</h1>
-              <p className="text-sm text-muted-foreground">@{profile.user.username || "traveler"}</p>
-              <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{displayName}</h1>
+              <p className="text-sm text-slate-500">@{profile.user.username || "traveler"}</p>
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 md:justify-start">
                 <span className="inline-flex items-center gap-1">
                   <CalendarDays className="h-3.5 w-3.5" />
                   Joined Pave
@@ -43,60 +58,58 @@ export default async function ProfilePage({ params }: { params: { username: stri
               </div>
             </div>
           </div>
+
           {viewer?.id && viewer.id !== profile.user.id && !profile.viewerBlocked ? (
             <FollowButton userId={profile.user.id} initiallyFollowing={profile.viewerFollows} />
           ) : null}
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <div className="rounded-lg border bg-muted/40 p-3">
-            <p className="text-xs text-muted-foreground">Posts</p>
-            <p className="text-2xl font-bold text-primary">{profile.posts.length}</p>
-          </div>
-          <div className="rounded-lg border bg-muted/40 p-3">
-            <p className="text-xs text-muted-foreground">Saved</p>
-            <p className="text-2xl font-bold text-primary">{profile.savedPosts.length}</p>
-          </div>
-          <div className="rounded-lg border bg-muted/40 p-3">
-            <p className="text-xs text-muted-foreground">Visibility</p>
-            <p className="text-sm font-semibold">Public profile</p>
-          </div>
-          <div className="rounded-lg border bg-muted/40 p-3">
-            <p className="text-xs text-muted-foreground">Role</p>
-            <p className="text-sm font-semibold">Trip curator</p>
-          </div>
+        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatTile label="Trips Created" value={profile.posts.length} />
+          <StatTile label="Saved Trips" value={profile.savedPosts.length} />
+          <StatTile label="Visibility" value="Public" className="[&>p:last-child]:text-xl" />
+          <StatTile label="Role" value="Trip Curator" className="[&>p:last-child]:text-xl" />
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Rss className="h-4 w-4 text-primary" />
-          <h2 className="text-xl font-bold">My Posts</h2>
-        </div>
-        {profile.posts.length ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {profile.posts.map((post) => (
-              <PostFeedCard key={post.id} post={post} />
-            ))}
+      <section className="space-y-5">
+        <div className="sticky top-[4.75rem] z-30 -mx-1 rounded-xl bg-background/95 px-1 backdrop-blur">
+          <div className="flex items-center gap-6 border-b border-slate-200 px-2">
+            <Link
+              href={`/profile/${params.username}?tab=posts`}
+              className={
+                activeTab === "posts"
+                  ? "inline-flex items-center gap-2 border-b-[3px] border-primary py-3 text-sm font-bold text-slate-900"
+                  : "inline-flex items-center gap-2 border-b-[3px] border-transparent py-3 text-sm font-bold text-slate-500 hover:text-slate-700"
+              }
+            >
+              <Rss className="h-4 w-4" />
+              My Posts
+            </Link>
+            <Link
+              href={`/profile/${params.username}?tab=saved`}
+              className={
+                activeTab === "saved"
+                  ? "inline-flex items-center gap-2 border-b-[3px] border-primary py-3 text-sm font-bold text-slate-900"
+                  : "inline-flex items-center gap-2 border-b-[3px] border-transparent py-3 text-sm font-bold text-slate-500 hover:text-slate-700"
+              }
+            >
+              <Bookmark className="h-4 w-4" />
+              Saved
+            </Link>
           </div>
-        ) : (
-          <p className="surface-card p-4 text-sm text-muted-foreground">No published posts yet.</p>
-        )}
-      </section>
+        </div>
 
-      <section className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Bookmark className="h-4 w-4 text-primary" />
-          <h2 className="text-xl font-bold">Saved Trips</h2>
-        </div>
-        {profile.savedPosts.length ? (
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {profile.savedPosts.map((post) => (
-              <PostFeedCard key={`saved-${post.id}`} post={post} />
+        {activeItems.length ? (
+          <div className="social-feed-grid">
+            {activeItems.map((post) => (
+              <PostFeedCard key={`${activeTab}-${post.id}`} post={post} />
             ))}
           </div>
         ) : (
-          <p className="surface-card p-4 text-sm text-muted-foreground">No saved posts yet.</p>
+          <div className="social-empty-panel">
+            {activeTab === "saved" ? "No saved posts yet." : "No published posts yet."}
+          </div>
         )}
       </section>
     </div>
