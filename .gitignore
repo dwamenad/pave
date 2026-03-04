@@ -6,3 +6,5 @@ coverage
 .Rhistory
 .tmp-stitch
 tsconfig.tsbuildinfo
+playwright-report
+test-results
