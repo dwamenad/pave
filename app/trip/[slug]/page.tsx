@@ -4,6 +4,9 @@ import { ShareControls } from "@/components/share-controls";
 import { TripBuilder } from "@/components/trip-builder";
 import type { TripData } from "@/components/trip-builder";
 import { TripSocialActions } from "@/components/trip-social-actions";
+import { getCurrentUser } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { trackEventWithActor } from "@/lib/server/events";
 import { getTripBySlug, getVoteTotals } from "@/lib/server/trip-service";
 
 export const dynamic = "force-dynamic";
@@ -12,11 +15,37 @@ export default async function TripPage({
   searchParams
 }: {
   params: { slug: string };
-  searchParams: { group?: string };
+  searchParams: { group?: string; st?: string };
 }) {
   const trip = await getTripBySlug(params.slug);
   if (!trip) {
     notFound();
+  }
+
+  if (searchParams.st && searchParams.st.length <= 80) {
+    const user = await getCurrentUser();
+    const token = searchParams.st;
+
+    await db.shareAttribution.updateMany({
+      where: {
+        token
+      },
+      data: {
+        openedAt: new Date(),
+        tripId: trip.id
+      }
+    });
+
+    await trackEventWithActor({
+      name: "share_trip",
+      userId: user?.id,
+      sessionId: token,
+      props: {
+        tripId: trip.id,
+        token,
+        opened: true
+      }
+    });
   }
 
   const votes = await getVoteTotals(trip.id);

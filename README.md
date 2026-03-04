@@ -1,140 +1,134 @@
 # Pave
 
-Pave is a social itinerary app where users can discover trip ideas, generate personalized itineraries from social context, and publish/share those itineraries with the community.
+[![Next.js 14](https://img.shields.io/badge/Next.js-14-black)](https://nextjs.org/)
+[![React 18](https://img.shields.io/badge/React-18-149eca)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict-3178c6)](https://www.typescriptlang.org/)
+[![Prisma](https://img.shields.io/badge/Prisma-ORM-2d3748)](https://www.prisma.io/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-336791)](https://www.postgresql.org/)
+[![Vitest](https://img.shields.io/badge/Tests-Vitest-6e9f18)](https://vitest.dev/)
+[![Node 22.x](https://img.shields.io/badge/Node-22.x-5fa04e)](https://nodejs.org/)
 
-This repo combines two experiences in one product:
+<p align="center">
+  <img src="./docs/assets/pave-banner.svg" alt="Pave banner" width="100%" />
+</p>
 
-1. **Trip planning utility**: place search, itinerary builder, map/list views, budget filters, sharing, and group voting.
-2. **Social layer**: feed, profiles, post detail, comments, likes/saves, remix, reporting/moderation, and PDF export.
+<p align="center">
+  <strong>Turn social travel inspiration into ready-to-run itineraries.</strong>
+  <br />
+  Discover places, generate personalized trips, publish to a social feed, and remix community plans.
+</p>
 
-## Product scope (current MVP)
+## Documentation Index
 
-### Planner features
+- Product specification: [`docs/PRD.md`](./docs/PRD.md)
+- Reliability baseline: [`docs/SLOS_AND_DASHBOARDS.md`](./docs/SLOS_AND_DASHBOARDS.md)
+- Environment setup and local runbook: this README (`Quick Start`, `Environment`, `Developer Workflow`)
 
-- Search destination/place and open a Place Hub (`/place/[placeId]`)
-- Browse nearby options by category: Eat / Stay / Do
-- Budget filters (Budget / Mid / Luxury)
-- Build and edit 1-3 day itineraries
-- Reorder/move/remove trip items
-- Public share links and invite-token voting
-- Nearby mode for quick no-login discovery (`/nearby`)
+## Why Pave?
 
-### Social features
+Pave bridges the gap between social discovery and practical planning.
 
-- Publish itinerary-linked posts with caption + optional media URL
-- Public feed (`/feed`) and profile pages (`/profile/[username]`)
-- Post detail pages (`/post/[postId]`)
-- Likes, saves, and comments
-- Report + hide baseline moderation
-- Remix any itinerary into your own editable trip
-- Server-generated PDF export from trip pages
+- Social-first trip creation from caption context + links
+- Fast itinerary generation with editable 1-3 day plans
+- Share, remix, comment, save, and follow creator workflows
+- Feed ranking with candidate scoring + diversity re-ranking
+- Safety baseline with reports, hide behavior, and user block graph
 
-### Personalized generation from social context
+## Product Surface
 
-- Paste 1-5 social links + text context
-- Metadata fetch (title/description/OG where available)
-- Best-effort location hint extraction from text + links
-- Location confirmation via Places suggestions when ambiguous
-- Preference-driven trip generation (budget, pace, days, tags)
+| Area | What you can do |
+|---|---|
+| Planner | Search destinations, build itineraries, reorder/move items, nearby exploration |
+| Social | Publish itinerary posts, browse feed, like/save/comment, remix trips |
+| Growth | Follow/unfollow, notifications, event tracking, share attribution |
+| Reliability | Distributed rate limiting (Upstash) with local fallback |
+| Safety | Profanity checks, report/hide moderation flow, block graph filtering |
 
-## Tech stack
+## Product Tour
 
-- **Framework**: Next.js 14 (App Router), React 18, TypeScript
-- **Styling/UI**: Tailwind CSS + lightweight shadcn-style components
-- **Database/ORM**: PostgreSQL + Prisma
-- **Maps/Places**: Google Maps JS + Places APIs
-- **Auth**: Auth.js (`next-auth`) with Google OAuth
-- **PDF**: `pdf-lib` server-side generation
-- **Testing**: Vitest
+<p align="center">
+  <img src="./docs/assets/pave-tour.svg" alt="Pave product flow" width="100%" />
+</p>
 
-## High-level architecture
+<p align="center">
+  <em>Ingest social context, build itineraries, socialize in-feed, and optimize with event/ranking loops.</em>
+</p>
 
-### Backend modules
+## Core Routes
 
-- `lib/providers/*`: Google Places provider abstraction
-- `lib/server/trip-service.ts`: itinerary generation + trip retrieval
-- `lib/server/social-service.ts`: feed/profile/post retrieval and shaping
-- `lib/server/link-metadata.ts`: URL metadata + parsing helpers
-- `lib/server/moderation.ts`: profanity + tag normalization
-- `lib/server/export-service.ts`: PDF generation + export records
-- `lib/auth.ts`: auth/session helpers
+### End-user pages
 
-### API routes
-
-- Trips: create/edit/share/vote/remix/export
-- Social: feed/posts/likes/saves/comments/reports
-- Metadata parsing: social parse + link metadata
-- Places: autocomplete/details/nearby/photo proxy
-- Auth: `next-auth` handler
-
-### Data model groups (Prisma)
-
-- **Auth/identity**: `User`, `Account`, `Session`, `VerificationToken`, `AnonymousSession`
-- **Planner**: `Trip`, `TripDay`, `TripItem`, `GroupInvite`, `Vote`
-- **Places cache**: `PlaceCache`, `NearbyCache`
-- **Social**: `Post`, `PostSourceLink`, `PostLike`, `PostSave`, `Comment`, `Report`
-- **Reuse/export**: `TripRemix`, `TripExport`
-
-## Routes
-
-### Core pages
-
-- `/` planner landing + social parse
-- `/place/[placeId]` place hub
+- `/` planner-first landing with social parse entry
+- `/feed` social itinerary feed (`for_you`, `following`, `trending` modes)
+- `/create` social-context itinerary generation and optional publish
 - `/trip/[slug]` itinerary builder + share + remix + export
-- `/nearby` nearby-now mode
+- `/post/[postId]` post detail + comments + source links
+- `/profile/[username]` creator profile, posts, and saved posts
+- `/nearby` no-login nearby discovery
+- `/notifications` activity inbox
+- `/support` safety and support contact
 
-### Social pages
+### API highlights
 
-- `/feed` community itinerary feed
-- `/create` social-context itinerary generation + optional publish
-- `/post/[postId]` post detail and comments
-- `/profile/[username]` user posts + saved posts
+- Feed: `/api/feed`, `/api/feed/for-you`, `/api/feed/following`
+- Posts/social: `/api/posts/*`, `/api/reports`, `/api/comments/*`
+- Trips: `/api/trips/*` (share, vote, remix, export, items CRUD)
+- Growth/graph: `/api/events/batch`, `/api/users/[userId]/follow`, `/api/users/[userId]/block`, `/api/notifications`, `/api/shares/track`
+- Parsing/places: `/api/social/parse`, `/api/links/metadata`, `/api/search/autocomplete`, `/api/places/*`
 
-## Environment configuration
+## Architecture
 
-Create both `.env` and `.env.local` from `.env.example`:
+### Tech stack
 
-```bash
-cp .env.example .env
-cp .env.example .env.local
-```
+- Framework: Next.js 14 (App Router), React 18, TypeScript
+- Styling/UI: Tailwind CSS + lightweight shadcn-style primitives
+- Data: PostgreSQL + Prisma
+- Maps/Places: Google Maps JavaScript API + Places API
+- Auth: Auth.js (`next-auth`) with Google OAuth
+- PDF: `pdf-lib` server-side generation
+- Tests: Vitest
 
-Required variables:
+### Key server modules
 
-```env
-DATABASE_URL="postgresql://<user>@127.0.0.1:5432/one_click_away?schema=public"
-GOOGLE_MAPS_API_KEY_PUBLIC="your_referrer_restricted_maps_js_key"
-GOOGLE_MAPS_API_KEY_SERVER="your_server_places_key"
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
-RATE_LIMIT_WINDOW_MS="60000"
-RATE_LIMIT_MAX_REQUESTS="60"
-NEXTAUTH_SECRET="long-random-secret"
-GOOGLE_CLIENT_ID="google-oauth-client-id"
-GOOGLE_CLIENT_SECRET="google-oauth-client-secret"
-```
+- `lib/server/trip-service.ts`: itinerary generation and trip retrieval
+- `lib/server/social-service.ts`: feed/profile/post shaping and ranking flows
+- `lib/server/feed-ranker.ts`: rank features, scoring, diversity re-ranking
+- `lib/server/events.ts`: event ingestion, feed action tracking, notifications
+- `lib/server/rate-limit.ts`: Upstash REST limit path + local fallback
+- `lib/server/link-metadata.ts`: URL metadata + hint extraction
+- `lib/server/moderation.ts`: profanity and tag sanitation
 
-### Google key restrictions (recommended)
+### Data model groups
 
-- `GOOGLE_MAPS_API_KEY_PUBLIC`
-  - Restrict by **HTTP referrer** (`http://localhost:3000/*` for dev)
-  - API restriction: **Maps JavaScript API**
-- `GOOGLE_MAPS_API_KEY_SERVER`
-  - API restriction: **Places API**
-  - For local dev, keep app restriction relaxed first; tighten later
+- Auth/identity: `User`, `Account`, `Session`, `VerificationToken`, `AnonymousSession`
+- Planner: `Trip`, `TripDay`, `TripItem`, `GroupInvite`, `Vote`
+- Social: `Post`, `PostSourceLink`, `PostLike`, `PostSave`, `Comment`, `Report`
+- Growth/graph: `Follow`, `Block`, `Event`, `Notification`, `FeedImpression`, `FeedAction`, `ShareAttribution`
+- Reuse/export: `TripRemix`, `TripExport`
+- Cache: `PlaceCache`, `NearbyCache`
 
-## Local development
+## Quick Start
 
-Tooling versions used by this repo:
+### 1) Requirements
 
-- Node.js `22.x` (see `.nvmrc`)
+- Node.js `22.x`
 - pnpm `10.x`
+- PostgreSQL running locally
+
+### 2) Install + setup
 
 ```bash
 pnpm install
+cp .env.example .env
+cp .env.example .env.local
 pnpm prisma:generate
 pnpm prisma:migrate
 pnpm prisma:seed
+```
+
+### 3) Run
+
+```bash
 pnpm dev
 ```
 
@@ -144,66 +138,72 @@ Open:
 - `http://localhost:3000/feed`
 - `http://localhost:3000/create`
 
-## Database notes
+## Environment
 
-This project expects a running Postgres instance.
-
-If you run a local cluster manually (example):
-
-```bash
-initdb -D "$HOME/.postgres-oca"
-pg_ctl -D "$HOME/.postgres-oca" -l "$HOME/.postgres-oca/server.log" start
-createdb one_click_away
+```env
+DATABASE_URL="postgresql://<user>@127.0.0.1:5432/one_click_away?schema=public"
+GOOGLE_MAPS_API_KEY_PUBLIC="your_referrer_restricted_maps_js_key"
+GOOGLE_MAPS_API_KEY_SERVER="your_server_places_key"
+NEXT_PUBLIC_APP_URL="http://localhost:3000"
+RATE_LIMIT_WINDOW_MS="60000"
+RATE_LIMIT_MAX_REQUESTS="60"
+UPSTASH_REDIS_REST_URL=""
+UPSTASH_REDIS_REST_TOKEN=""
+SUPPORT_EMAIL="support@pave.app"
+DEEP_LINK_BASE_URL="http://localhost:3000"
+NEXTAUTH_SECRET="long-random-secret"
+GOOGLE_CLIENT_ID="google-oauth-client-id"
+GOOGLE_CLIENT_SECRET="google-oauth-client-secret"
 ```
 
-Connection readiness:
+Google key guidance:
 
-```bash
-pg_isready -h 127.0.0.1 -p 5432
-```
+- `GOOGLE_MAPS_API_KEY_PUBLIC`
+  - Restrict by HTTP referrer (`http://localhost:3000/*` in dev)
+  - Restrict API to Maps JavaScript API
+- `GOOGLE_MAPS_API_KEY_SERVER`
+  - Restrict API to Places API
+  - Tighten app restrictions for production
 
-## Testing
+## Developer Workflow
 
 ```bash
 pnpm test
-```
-
-Current automated coverage includes:
-
-- itinerary scoring behavior
-- provider interface contract
-- feed ranking scorer
-- moderation utilities
-- link metadata hint extraction
-
-## Build
-
-```bash
+pnpm lint
 pnpm build
-pnpm start
 ```
 
-## Security and policy notes
+Coverage currently includes itinerary logic, provider contract checks, feed ranking behavior, moderation utilities, and metadata hint extraction.
 
-- No authenticated scraping of Instagram/TikTok/Twitter content.
-- Social links are handled as best-effort metadata + URL/text hints.
-- Server key is never intentionally exposed to browser clients.
-- Basic rate limiting is applied on public endpoints.
-- MVP moderation: profanity filtering + user reports + hide behavior.
+## Security and Policy Notes
 
-## Known MVP constraints
+- No authenticated scraping of Instagram/TikTok/X content
+- Link handling is metadata + URL/text hint extraction only
+- Server-side API keys are not intentionally exposed to clients
+- Public endpoints have rate limiting (distributed if Upstash is configured)
+- Moderation baseline includes profanity filtering and report/hide behavior
+- Block graph prevents blocked-user visibility in feed/profile fetches
+- Deep-link association files are in `public/.well-known/*`
 
-- No real-time comments/votes (polling/refresh model)
-- No media upload pipeline (external URL media only)
-- No advanced admin dashboard yet
-- Feed ranking is deterministic and simple (recency + engagement weighted)
+## Operations
 
-## Deploy considerations
+SLO and dashboard baseline lives in:
+
+- `docs/SLOS_AND_DASHBOARDS.md`
+
+## Known MVP Constraints
+
+- No realtime comments/votes (polling model)
+- External URL media only (no internal upload pipeline)
+- No advanced admin moderation dashboard yet
+- Feed ranking is heuristic v1 (not ML model serving)
+
+## Deployment Notes
 
 Before production launch:
 
-- Enforce strict Google key restrictions
-- Set robust `NEXTAUTH_SECRET`
-- Configure production Postgres + SSL
-- Add proper object storage if moving beyond URL-based media
-- Add observability for API errors and moderation activity
+- enforce strict Google API key restrictions
+- set robust `NEXTAUTH_SECRET`
+- run production Postgres with SSL and backups
+- add object storage if moving beyond URL media
+- wire error tracking + API latency dashboards

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { createNotification, trackEventWithActor, trackFeedAction } from "@/lib/server/events";
 import { requireApiUser } from "@/lib/server/route-user";
 import { containsProfanity } from "@/lib/server/moderation";
 
@@ -68,6 +69,15 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
     return NextResponse.json({ error: "Comment text is required" }, { status: 400 });
   }
 
+  const post = await db.post.findUnique({
+    where: { id: params.postId },
+    select: { id: true, authorId: true, status: true }
+  });
+
+  if (!post || post.status !== "ACTIVE") {
+    return NextResponse.json({ error: "Post not found" }, { status: 404 });
+  }
+
   const status = containsProfanity(text) ? "HIDDEN" : "ACTIVE";
 
   const comment = await db.comment.create({
@@ -92,6 +102,33 @@ export async function POST(request: NextRequest, { params }: { params: { postId:
       }
     }
   });
+
+  await Promise.all([
+    trackFeedAction({
+      postId: params.postId,
+      actionType: "comment_post",
+      userId: auth.user.id
+    }),
+    trackEventWithActor({
+      name: "comment_post",
+      userId: auth.user.id,
+      props: {
+        postId: params.postId,
+        commentId: comment.id
+      }
+    }),
+    post.authorId !== auth.user.id
+      ? createNotification({
+          userId: post.authorId,
+          type: "POST_COMMENT",
+          entityId: comment.id,
+          payload: {
+            postId: params.postId,
+            commentAuthorId: auth.user.id
+          }
+        })
+      : Promise.resolve(null)
+  ]);
 
   return NextResponse.json({ comment: mapComment(comment) });
 }

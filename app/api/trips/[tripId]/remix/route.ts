@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
+import { createNotification, trackEventWithActor } from "@/lib/server/events";
 import { requireApiUser } from "@/lib/server/route-user";
 import { slugify } from "@/lib/utils";
 
@@ -60,6 +61,33 @@ export async function POST(_: NextRequest, { params }: { params: { tripId: strin
       remixedById: auth.user.id
     }
   });
+
+  const work: Promise<unknown>[] = [
+    trackEventWithActor({
+      name: "remix_trip",
+      userId: auth.user.id,
+      props: {
+        sourceTripId: sourceTrip.id,
+        remixedTripId: remixedTrip.id
+      }
+    })
+  ];
+
+  if (sourceTrip.authorId && sourceTrip.authorId !== auth.user.id) {
+    work.push(
+      createNotification({
+        userId: sourceTrip.authorId,
+        type: "TRIP_REMIXED",
+        entityId: remixedTrip.id,
+        payload: {
+          sourceTripId: sourceTrip.id,
+          remixedById: auth.user.id
+        }
+      })
+    );
+  }
+
+  await Promise.all(work);
 
   return NextResponse.json({
     trip: remixedTrip,

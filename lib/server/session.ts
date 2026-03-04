@@ -4,16 +4,15 @@ import { db } from "@/lib/db";
 
 const COOKIE_NAME = "oca_session";
 
-export async function getOrCreateSessionToken() {
+export async function getOrCreateAnonymousSession() {
   const cookieStore = cookies();
   const existing = cookieStore.get(COOKIE_NAME)?.value;
   if (existing) {
-    await db.anonymousSession.upsert({
+    return db.anonymousSession.upsert({
       where: { token: existing },
       update: { lastSeenAt: new Date() },
       create: { token: existing }
     });
-    return existing;
   }
 
   const token = nanoid(24);
@@ -25,6 +24,10 @@ export async function getOrCreateSessionToken() {
     path: "/"
   });
 
-  await db.anonymousSession.create({ data: { token } });
-  return token;
+  return db.anonymousSession.create({ data: { token } });
+}
+
+export async function getOrCreateSessionToken() {
+  const session = await getOrCreateAnonymousSession();
+  return session.token;
 }

@@ -1,12 +1,44 @@
 import Link from "next/link";
 import { Compass, Rocket, TrendingUp, UserRoundCheck } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
+import { trackEventWithActor, trackFeedImpressions } from "@/lib/server/events";
+import { getOrCreateSessionToken } from "@/lib/server/session";
 import { getFeed } from "@/lib/server/social-service";
 import { PostFeedCard } from "@/components/post-feed-card";
+import type { FeedSource } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function FeedPage() {
-  const feed = await getFeed();
+function sourceFromQuery(source?: string): FeedSource {
+  if (source === "following") return "FOLLOWING";
+  if (source === "trending") return "TRENDING";
+  return "FOR_YOU";
+}
+
+export default async function FeedPage({ searchParams }: { searchParams?: { source?: string } }) {
+  const user = await getCurrentUser();
+  const sessionId = await getOrCreateSessionToken();
+  const source = sourceFromQuery(searchParams?.source);
+  const feed = await getFeed({ source, userId: user?.id });
+
+  await Promise.all([
+    trackEventWithActor({
+      name: "view_feed",
+      userId: user?.id,
+      sessionId,
+      props: {
+        source,
+        itemCount: feed.items.length
+      }
+    }),
+    trackFeedImpressions({
+      postIds: feed.items.map((post) => post.id),
+      source,
+      userId: user?.id,
+      sessionId
+    })
+  ]);
+
   const trendCounts = new Map<string, number>();
   const creatorStats = new Map<string, { name: string; username?: string | null; score: number }>();
 
@@ -49,19 +81,30 @@ export default async function FeedPage() {
       <div className="flex flex-col gap-8 lg:flex-row">
         <section className="flex-1 space-y-6">
           <div className="flex gap-2 overflow-x-auto pb-1">
-            {["All", "Adventure", "Luxury", "Budget", "Solo"].map((chip, idx) => (
-              <button
-                key={chip}
-                className={
-                  idx === 0
-                    ? "rounded-full bg-primary px-4 py-2 text-xs font-bold text-white"
-                    : "rounded-full border bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary"
-                }
-                type="button"
-              >
-                {chip}
-              </button>
-            ))}
+            {[
+              { label: "For You", href: "/feed" },
+              { label: "Following", href: "/feed?source=following" },
+              { label: "Trending", href: "/feed?source=trending" }
+            ].map((chip) => {
+              const active =
+                (source === "FOR_YOU" && chip.href === "/feed") ||
+                (source === "FOLLOWING" && chip.href.includes("following")) ||
+                (source === "TRENDING" && chip.href.includes("trending"));
+
+              return (
+                <Link
+                  key={chip.label}
+                  className={
+                    active
+                      ? "rounded-full bg-primary px-4 py-2 text-xs font-bold text-white"
+                      : "rounded-full border bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary"
+                  }
+                  href={chip.href}
+                >
+                  {chip.label}
+                </Link>
+              );
+            })}
           </div>
 
           {feed.items.length ? (

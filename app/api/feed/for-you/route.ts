@@ -2,19 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import { trackEventWithActor, trackFeedImpressions } from "@/lib/server/events";
 import { getOrCreateSessionToken } from "@/lib/server/session";
-import { getFeed } from "@/lib/server/social-service";
-import type { FeedSource } from "@/lib/types";
+import { getForYouFeed } from "@/lib/server/social-service";
 
 export async function GET(request: NextRequest) {
   const cursor = request.nextUrl.searchParams.get("cursor") || undefined;
-  const requestedSource = request.nextUrl.searchParams.get("source");
-  const source: FeedSource =
-    requestedSource === "FOLLOWING" || requestedSource === "TRENDING"
-      ? requestedSource
-      : "FOR_YOU";
   const user = await getCurrentUser();
   const sessionId = await getOrCreateSessionToken();
-  const feed = await getFeed({ cursor, source, userId: user?.id });
+  const feed = await getForYouFeed(user?.id, cursor);
 
   await Promise.all([
     trackEventWithActor({
@@ -22,13 +16,13 @@ export async function GET(request: NextRequest) {
       userId: user?.id,
       sessionId,
       props: {
-        source,
+        source: "FOR_YOU",
         itemCount: feed.items.length
       }
     }),
     trackFeedImpressions({
       postIds: feed.items.map((post) => post.id),
-      source,
+      source: "FOR_YOU",
       userId: user?.id,
       sessionId
     })

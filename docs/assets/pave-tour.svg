@@ -1,0 +1,40 @@
+<svg width="1400" height="520" viewBox="0 0 1400 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="tourBg" x1="0" y1="0" x2="1400" y2="520" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="1" stop-color="#1E293B"/>
+    </linearGradient>
+  </defs>
+  <rect width="1400" height="520" rx="26" fill="url(#tourBg)"/>
+
+  <text x="70" y="86" fill="#E2E8F0" font-size="34" font-family="Inter, Arial, sans-serif" font-weight="800">Pave Product Flow</text>
+
+  <rect x="70" y="128" width="260" height="300" rx="18" fill="#0EA5E9" fill-opacity="0.2" stroke="#38BDF8"/>
+  <text x="96" y="174" fill="#E0F2FE" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="700">1. Ingest</text>
+  <text x="96" y="208" fill="#BAE6FD" font-size="16" font-family="Inter, Arial, sans-serif">Paste links + context</text>
+  <text x="96" y="234" fill="#BAE6FD" font-size="16" font-family="Inter, Arial, sans-serif">Extract hints</text>
+  <text x="96" y="260" fill="#BAE6FD" font-size="16" font-family="Inter, Arial, sans-serif">Confirm destination</text>
+
+  <rect x="385" y="128" width="260" height="300" rx="18" fill="#22C55E" fill-opacity="0.2" stroke="#4ADE80"/>
+  <text x="411" y="174" fill="#DCFCE7" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="700">2. Build</text>
+  <text x="411" y="208" fill="#BBF7D0" font-size="16" font-family="Inter, Arial, sans-serif">Generate itinerary</text>
+  <text x="411" y="234" fill="#BBF7D0" font-size="16" font-family="Inter, Arial, sans-serif">Edit and reorder</text>
+  <text x="411" y="260" fill="#BBF7D0" font-size="16" font-family="Inter, Arial, sans-serif">Share trip link</text>
+
+  <rect x="700" y="128" width="260" height="300" rx="18" fill="#8B5CF6" fill-opacity="0.2" stroke="#A78BFA"/>
+  <text x="726" y="174" fill="#EDE9FE" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="700">3. Socialize</text>
+  <text x="726" y="208" fill="#DDD6FE" font-size="16" font-family="Inter, Arial, sans-serif">Publish to feed</text>
+  <text x="726" y="234" fill="#DDD6FE" font-size="16" font-family="Inter, Arial, sans-serif">Like / save / comment</text>
+  <text x="726" y="260" fill="#DDD6FE" font-size="16" font-family="Inter, Arial, sans-serif">Remix lineage</text>
+
+  <rect x="1015" y="128" width="315" height="300" rx="18" fill="#F59E0B" fill-opacity="0.2" stroke="#FCD34D"/>
+  <text x="1041" y="174" fill="#FEF3C7" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="700">4. Optimize</text>
+  <text x="1041" y="208" fill="#FDE68A" font-size="16" font-family="Inter, Arial, sans-serif">Events + attribution</text>
+  <text x="1041" y="234" fill="#FDE68A" font-size="16" font-family="Inter, Arial, sans-serif">For-you ranking + diversity</text>
+  <text x="1041" y="260" fill="#FDE68A" font-size="16" font-family="Inter, Arial, sans-serif">SLOs + rate limiting</text>
+  <text x="1041" y="286" fill="#FDE68A" font-size="16" font-family="Inter, Arial, sans-serif">Safety & moderation</text>
+
+  <path d="M338 274H376" stroke="#7DD3FC" stroke-width="3"/>
+  <path d="M653 274H691" stroke="#86EFAC" stroke-width="3"/>
+  <path d="M968 274H1006" stroke="#C4B5FD" stroke-width="3"/>
+</svg>

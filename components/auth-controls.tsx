@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { signIn, signOut, useSession } from "next-auth/react";
-import { LogOut, PlusSquare } from "lucide-react";
+import { Bell, LogOut, PlusSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function AuthControls() {
@@ -41,6 +41,9 @@ export function AuthControls() {
       </Link>
       <Link href="/feed" className="inline-flex h-9 items-center rounded-lg border bg-white px-3 text-xs font-semibold hover:bg-muted">
         Feed
+      </Link>
+      <Link href="/notifications" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border bg-white hover:bg-muted" title="Notifications">
+        <Bell className="h-4 w-4" />
       </Link>
       <Button type="button" className="h-9 w-9 rounded-lg p-0" variant="ghost" onClick={() => signOut({ callbackUrl: "/" })}>
         <LogOut className="h-4 w-4" />

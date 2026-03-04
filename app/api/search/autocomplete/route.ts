@@ -15,9 +15,12 @@ function toClientError(error: unknown) {
 
 export async function GET(request: NextRequest) {
   try {
-    const limited = rateLimit(request);
+    const limited = await rateLimit(request);
     if (!limited.ok) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+      return NextResponse.json(
+        { error: "Too many requests", retryAfterMs: limited.retryAfterMs },
+        { status: 429 }
+      );
     }
 
     const query = request.nextUrl.searchParams.get("q") || "";

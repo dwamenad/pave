@@ -46,6 +46,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     <Link href="/feed" className="hover:text-foreground">Explore</Link>
                     <Link href="/create" className="hover:text-foreground">Create</Link>
                     <Link href="/nearby" className="hover:text-foreground">Nearby</Link>
+                    <Link href="/support" className="hover:text-foreground">Support</Link>
                   </nav>
                 </div>
 

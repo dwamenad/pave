@@ -68,6 +68,15 @@ model User {
   remixes        TripRemix[]        @relation("TripRemixByUser")
   exports        TripExport[]
   anonSessions   AnonymousSession[]
+  followers      Follow[]           @relation("Followee")
+  following      Follow[]           @relation("Follower")
+  blockedUsers   Block[]            @relation("Blocker")
+  blockedByUsers Block[]            @relation("Blocked")
+  events         Event[]
+  notifications  Notification[]
+  feedImpressions FeedImpression[]
+  feedActions    FeedAction[]
+  shareAttributions ShareAttribution[] @relation("ShareInviter")
 }
 
 model Account {
@@ -117,6 +126,7 @@ model AnonymousSession {
   lastSeenAt DateTime @default(now())
 
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  events Event[]
 
   @@index([token])
 }
@@ -141,6 +151,7 @@ model Trip {
   exports     TripExport[]
   remixedFrom TripRemix[]   @relation("SourceTrip")
   remixedInto TripRemix[]   @relation("RemixedTrip")
+  shares      ShareAttribution[]
 
   @@index([slug])
   @@index([authorId])
@@ -238,6 +249,9 @@ model Post {
   saves       PostSave[]
   comments    Comment[]
   reports     Report[]
+  impressions FeedImpression[]
+  actions     FeedAction[]
+  shares      ShareAttribution[]
 
   @@index([authorId, createdAt])
   @@index([status, visibility, createdAt])
@@ -355,4 +369,116 @@ model TripExport {
 
   @@index([tripId, createdAt])
   @@index([requestedById])
+}
+
+model Follow {
+  id         String   @id @default(cuid())
+  followerId String
+  followeeId String
+  createdAt  DateTime @default(now())
+
+  follower User @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followee User @relation("Followee", fields: [followeeId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followeeId])
+  @@index([followerId, createdAt])
+  @@index([followeeId, createdAt])
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker User @relation("Blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("Blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@index([blockerId, createdAt])
+  @@index([blockedId, createdAt])
+}
+
+model Event {
+  id            String   @id @default(cuid())
+  userId        String?
+  anonSessionId String?
+  name          String
+  props         Json?
+  sessionId     String?
+  createdAt     DateTime @default(now())
+
+  user        User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  anonSession AnonymousSession? @relation(fields: [anonSessionId], references: [id], onDelete: SetNull)
+
+  @@index([name, createdAt])
+  @@index([userId, createdAt])
+  @@index([anonSessionId, createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  entityId  String?
+  payload   Json?
+  readAt    DateTime?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model FeedImpression {
+  id        String   @id @default(cuid())
+  userId    String?
+  postId    String
+  sessionId String
+  source    String
+  position  Int
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  post Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, createdAt])
+  @@index([userId, createdAt])
+  @@index([sessionId, createdAt])
+}
+
+model FeedAction {
+  id         String   @id @default(cuid())
+  userId     String?
+  postId     String
+  actionType String
+  source     String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  post Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId, actionType, createdAt])
+  @@index([userId, createdAt])
+}
+
+model ShareAttribution {
+  id          String    @id @default(cuid())
+  tripId      String?
+  postId      String?
+  inviterId   String?
+  channel     String
+  token       String    @unique
+  destination String?
+  openedAt    DateTime?
+  createdAt   DateTime  @default(now())
+
+  trip    Trip?  @relation(fields: [tripId], references: [id], onDelete: SetNull)
+  post    Post?  @relation(fields: [postId], references: [id], onDelete: SetNull)
+  inviter User?  @relation("ShareInviter", fields: [inviterId], references: [id], onDelete: SetNull)
+
+  @@index([inviterId, createdAt])
+  @@index([tripId, createdAt])
+  @@index([postId, createdAt])
+  @@index([channel, createdAt])
 }

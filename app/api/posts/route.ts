@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { trackEventWithActor } from "@/lib/server/events";
 import { requireApiUser } from "@/lib/server/route-user";
 import { containsProfanity, sanitizeToTags } from "@/lib/server/moderation";
 import { fetchMetadataForLinks } from "@/lib/server/link-metadata";
@@ -48,6 +49,42 @@ export async function POST(request: NextRequest) {
     },
     include: {
       sourceLinks: true
+    }
+  });
+
+  const followers = await db.follow.findMany({
+    where: {
+      followeeId: auth.user.id
+    },
+    select: {
+      followerId: true
+    }
+  });
+
+  if (followers.length) {
+    await db.notification.createMany({
+      data: followers.map((row) => ({
+        userId: row.followerId,
+        type: "NEW_POST",
+        entityId: post.id,
+        payload: {
+          authorId: auth.user.id,
+          authorUsername: auth.user.username,
+          tripId,
+          destinationLabel: destinationLabel || trip.title
+        }
+      }))
+    });
+  }
+
+  await trackEventWithActor({
+    name: "publish_post",
+    userId: auth.user.id,
+    props: {
+      postId: post.id,
+      tripId,
+      visibility,
+      status
     }
   });
 

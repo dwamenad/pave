@@ -1,14 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
+import { nanoid } from "nanoid";
+import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
+import { trackEventWithActor } from "@/lib/server/events";
 
-export async function POST(_: NextRequest, { params }: { params: { tripId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { tripId: string } }) {
   const trip = await db.trip.findUnique({ where: { id: params.tripId } });
   if (!trip) {
     return NextResponse.json({ error: "Trip not found" }, { status: 404 });
   }
 
+  const body = await request.json().catch(() => ({}));
+  const channel = typeof body.channel === "string" ? body.channel.slice(0, 40) : "direct";
+  const user = await getCurrentUser();
+  const token = nanoid(12);
+  const deepLinkBase = env.DEEP_LINK_BASE_URL.replace(/\/+$/, "");
+  const shareUrl = `${deepLinkBase}/trip/${trip.slug}?st=${token}`;
+
+  const attribution = await db.shareAttribution.create({
+    data: {
+      token,
+      tripId: trip.id,
+      inviterId: user?.id ?? null,
+      channel,
+      destination: trip.title
+    }
+  });
+
+  await trackEventWithActor({
+    name: "share_trip",
+    userId: user?.id,
+    sessionId: token,
+    props: {
+      tripId: trip.id,
+      shareAttributionId: attribution.id,
+      channel
+    }
+  });
+
   return NextResponse.json({
-    url: `${env.NEXT_PUBLIC_APP_URL}/trip/${trip.slug}`
+    url: shareUrl,
+    token,
+    deepLinks: {
+      web: shareUrl,
+      ios: shareUrl,
+      android: shareUrl
+    }
   });
 }

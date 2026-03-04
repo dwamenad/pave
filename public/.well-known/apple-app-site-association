@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "REPLACE_WITH_TEAM_ID.app.pave.web",
+        "paths": [
+          "/trip/*",
+          "/post/*",
+          "/feed*"
+        ]
+      }
+    ]
+  }
+}

@@ -4,6 +4,7 @@ import { Bookmark, CalendarDays, MapPin, Rss } from "lucide-react";
 import { getPostsByUsername } from "@/lib/server/social-service";
 import { PostFeedCard } from "@/components/post-feed-card";
 import { getCurrentUser } from "@/lib/auth";
+import { FollowButton } from "@/components/follow-button";
 
 export const dynamic = "force-dynamic";
 export default async function ProfilePage({ params }: { params: { username: string } }) {
@@ -42,6 +43,9 @@ export default async function ProfilePage({ params }: { params: { username: stri
               </div>
             </div>
           </div>
+          {viewer?.id && viewer.id !== profile.user.id && !profile.viewerBlocked ? (
+            <FollowButton userId={profile.user.id} initiallyFollowing={profile.viewerFollows} />
+          ) : null}
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-4">

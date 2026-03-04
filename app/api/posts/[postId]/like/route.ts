@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { trackFeedAction } from "@/lib/server/events";
 import { requireApiUser } from "@/lib/server/route-user";
 
 export async function POST(_: NextRequest, { params }: { params: { postId: string } }) {
@@ -17,6 +18,11 @@ export async function POST(_: NextRequest, { params }: { params: { postId: strin
 
   if (existing) {
     await db.postLike.delete({ where: { id: existing.id } });
+    await trackFeedAction({
+      postId: params.postId,
+      actionType: "unlike_post",
+      userId: auth.user.id
+    });
     return NextResponse.json({ liked: false });
   }
 
@@ -25,6 +31,12 @@ export async function POST(_: NextRequest, { params }: { params: { postId: strin
       postId: params.postId,
       userId: auth.user.id
     }
+  });
+
+  await trackFeedAction({
+    postId: params.postId,
+    actionType: "like_post",
+    userId: auth.user.id
   });
 
   return NextResponse.json({ liked: true });

@@ -40,6 +40,7 @@ export type ItineraryPick = PlaceCard & {
 export type PostVisibility = "PUBLIC" | "UNLISTED";
 export type PostStatus = "ACTIVE" | "HIDDEN" | "DELETED";
 export type ModerationStatus = "ACTIVE" | "HIDDEN" | "DELETED";
+export type FeedSource = "FOLLOWING" | "FOR_YOU" | "TRENDING";
 
 export type SourceLinkMetadata = {
   url: string;
@@ -83,6 +84,9 @@ export type PostSummary = {
     saves: number;
     comments: number;
   };
+  source?: FeedSource;
+  score?: number;
+  followedAuthor?: boolean;
 };
 
 export type CommentDTO = {
@@ -101,4 +105,46 @@ export type CommentDTO = {
 export type PostDetail = PostSummary & {
   sourceLinks: SourceLinkMetadata[];
   comments: CommentDTO[];
+};
+
+export type FeedRankFeatures = {
+  ageHours: number;
+  likes: number;
+  saves: number;
+  comments: number;
+  remixCount: number;
+  creatorAffinity: number;
+  velocity: number;
+  negativeSignal: number;
+  blocked: boolean;
+};
+
+export type FeedRankResult = {
+  postId: string;
+  source: FeedSource;
+  score: number;
+  features: FeedRankFeatures;
+};
+
+export type ExperimentAssignment = {
+  experimentKey: string;
+  variant: "control" | "variant_a" | "variant_b";
+  userId?: string;
+  assignedAt: string;
+};
+
+export type RiskScore = {
+  actorId?: string;
+  ipHash?: string;
+  score: number;
+  reasons: string[];
+};
+
+export type NotificationDTO = {
+  id: string;
+  type: string;
+  entityId?: string | null;
+  payload?: Record<string, unknown> | null;
+  readAt?: string | null;
+  createdAt: string;
 };
