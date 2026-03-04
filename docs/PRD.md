@@ -1,16 +1,16 @@
 # Product Requirements Document (PRD)
-## One Click Away - Social Itinerary Platform
+## Pave - Social Itinerary Platform
 
 **Version:** 1.0 (Contributor Build Spec)  
 **Date:** March 1, 2026  
 **Status:** Active Implementation Baseline  
-**Repository:** `dwamenad/one-click-away`
+**Repository:** `dwamenad/pave`
 
 ---
 
 ## 1) Executive Summary
 
-One Click Away helps people turn travel inspiration from social content into practical, editable itineraries, then share those itineraries in a social feed.
+Pave helps people turn travel inspiration from social content into practical, editable itineraries, then share those itineraries in a social feed.
 
 This PRD is implementation-focused and decision-complete for contributors. It documents what to build, how it should behave, how to test it, what can fail, and how to reduce those failures.
 
@@ -26,7 +26,7 @@ People see places in short-form content (Instagram, TikTok, YouTube, X) but stru
 - great for **content discovery** but weak for planning, or
 - great for **planning** but disconnected from social inspiration.
 
-One Click Away bridges both.
+Pave bridges both.
 
 ---
 
