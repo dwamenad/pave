@@ -80,11 +80,11 @@ export function FeedListClient({ initialItems, initialNextCursor, source }: Prop
       )}
 
       {error ? (
-        <div className="flex items-center justify-center gap-3 text-sm text-red-600">
+        <div aria-live="assertive" role="alert" className="flex items-center justify-center gap-3 text-sm text-red-600">
           <span>{error}</span>
           {nextCursor ? (
             <button
-              className="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-1 font-semibold text-red-600 hover:bg-red-50"
+              className="inline-flex min-h-10 items-center gap-1 rounded-md border border-red-200 px-3 py-1 font-semibold text-red-600 hover:bg-red-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-300"
               onClick={loadMore}
               type="button"
             >
@@ -99,7 +99,7 @@ export function FeedListClient({ initialItems, initialNextCursor, source }: Prop
         <div className="flex justify-center">
           <button
             aria-label="Load more trips"
-            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary px-6 py-2.5 text-sm font-bold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-primary px-6 py-2.5 text-sm font-bold text-primary hover:bg-primary/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={loading}
             onClick={loadMore}
             type="button"

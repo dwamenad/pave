@@ -115,14 +115,31 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
         name: creator.name
       })
     }));
+  const visibleTrips = feed.items.length;
+  const totalLikes = feed.items.reduce((sum, post) => sum + post.counts.likes, 0);
+  const totalRemixables = feed.items.reduce((sum, post) => sum + post.trip.daysCount, 0);
 
   return (
     <div className="social-shell">
       <div className="flex flex-col gap-8 lg:flex-row">
         <section className="flex-1">
-          <div className="mb-8">
+          <div className="social-hero-panel mb-8">
             <h1 className="social-hero-title">Social Itinerary Feed</h1>
             <p className="social-hero-subtitle">Discover and remix community-crafted journeys from around the globe.</p>
+            <div className="relative z-10 mt-5 flex flex-wrap gap-2.5">
+              <span className="social-kpi">
+                <Sparkles className="h-3.5 w-3.5 text-primary" />
+                <span className="social-kpi-value">{visibleTrips}</span> fresh trips
+              </span>
+              <span className="social-kpi">
+                <TrendingUp className="h-3.5 w-3.5 text-primary" />
+                <span className="social-kpi-value">{totalLikes}</span> community likes
+              </span>
+              <span className="social-kpi">
+                <Compass className="h-3.5 w-3.5 text-primary" />
+                <span className="social-kpi-value">{totalRemixables}</span> planned days
+              </span>
+            </div>
           </div>
 
           <FeedOnboardingStrip />
@@ -135,8 +152,8 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
                   key={mode}
                   className={
                     active
-                      ? "inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs font-bold text-white"
-                      : "inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary"
+                      ? "inline-flex min-h-11 items-center rounded-full bg-primary px-4 py-2 text-xs font-bold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                      : "inline-flex min-h-11 items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
                   }
                   href={sourceHref(mode)}
                 >
@@ -157,12 +174,15 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
           <FeedListClient initialItems={feed.items} initialNextCursor={feed.nextCursor} source={source} />
         </section>
 
-        <aside className="social-rail">
+        <aside className="social-rail social-sticky-rail">
           <RailCard title="Trending Now" icon={<TrendingUp className="h-4 w-4 text-primary" />}>
             {trending.length ? (
               <ul className="space-y-4">
                 {trending.map((entry) => (
-                  <li key={entry.destination} className="flex items-center gap-3">
+                  <li
+                    key={entry.destination}
+                    className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl px-2 py-1 transition-colors hover:bg-slate-50"
+                  >
                     <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
                       {entry.thumbnailUrl ? (
                         <img alt={entry.destination} className="h-full w-full object-cover" src={entry.thumbnailUrl} />
@@ -182,7 +202,7 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             )}
 
             <button
-              className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/20"
+              className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
               type="button"
             >
               View All Trends
@@ -205,7 +225,10 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
                     </div>
 
                     {creator.username ? (
-                      <Link className="text-sm font-bold text-primary hover:underline" href={`/profile/${creator.username}`}>
+                      <Link
+                        className="inline-flex min-h-10 items-center text-sm font-bold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                        href={`/profile/${creator.username}`}
+                      >
                         Follow
                       </Link>
                     ) : (
@@ -219,12 +242,12 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             )}
           </RailCard>
 
-          <section className="overflow-hidden rounded-2xl bg-primary p-6 text-center text-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500 p-6 text-center text-white shadow-sm">
             <Rocket className="mx-auto mb-4 h-8 w-8" />
             <h3 className="text-2xl font-bold">Build Your Own</h3>
             <p className="mt-2 text-sm text-white/85">Create, share, and get remixed by the community!</p>
             <Link
-              className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-white px-4 py-3 text-sm font-extrabold text-primary hover:bg-slate-50"
+              className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-[hsl(var(--cta))] px-4 py-3 text-sm font-extrabold text-white transition-colors hover:bg-[hsl(var(--cta)/0.9)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               href="/create"
             >
               Start Planning
@@ -241,7 +264,7 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
 
       <div className="flex justify-end">
         <Link
-          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+          className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
           href="/create"
         >
           <Compass className="h-4 w-4" />

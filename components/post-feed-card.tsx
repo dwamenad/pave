@@ -66,12 +66,12 @@ export function PostFeedCard({ post }: Props) {
   const dayBadge = post.trip.daysCount > 0 ? `${post.trip.daysCount} DAYS` : "TRIP";
 
   return (
-    <article className="social-card overflow-hidden transition-shadow hover:shadow-md">
+    <article className="social-card group overflow-hidden hover:shadow-md focus-within:ring-2 focus-within:ring-primary/30">
       <div className="relative h-52 overflow-hidden bg-gradient-to-br from-cyan-100 via-sky-100 to-blue-100">
         {showImage ? (
           <img
             alt={post.destinationLabel || post.trip.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform motion-safe:duration-300 group-hover:scale-[1.02]"
             src={post.mediaUrl || ""}
             onError={() => setImageFailed(true)}
           />
@@ -88,8 +88,8 @@ export function PostFeedCard({ post }: Props) {
       <div className="space-y-4 p-5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <h3 className="line-clamp-1 text-[1.85rem] font-extrabold tracking-tight leading-none text-slate-900">
-              <Link className="hover:text-primary" href={`/post/${post.id}`}>
+            <h3 className="line-clamp-1 text-3xl font-extrabold leading-tight tracking-tight text-slate-900">
+              <Link className="hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35" href={`/post/${post.id}`}>
                 {post.destinationLabel || post.trip.title}
               </Link>
             </h3>
@@ -97,7 +97,7 @@ export function PostFeedCard({ post }: Props) {
           </div>
           <button
             aria-label="More post options"
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-primary"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
             type="button"
           >
             <Ellipsis className="h-4 w-4" />
@@ -123,7 +123,7 @@ export function PostFeedCard({ post }: Props) {
           <div className="flex items-center gap-3 text-xs text-slate-500">
             <button
               aria-label="Toggle like"
-              className="inline-flex items-center gap-1 hover:text-slate-700"
+              className="inline-flex min-h-10 items-center gap-1 rounded-md px-1 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
               disabled={pendingLike}
               onClick={toggleLike}
               type="button"
@@ -140,14 +140,14 @@ export function PostFeedCard({ post }: Props) {
 
         <div className="flex gap-2">
           <Link
-            className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white hover:opacity-90"
+            className="inline-flex min-h-11 flex-1 items-center justify-center rounded-lg bg-primary px-3 py-2 text-sm font-bold text-white transition-colors hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
             href={`/trip/${post.trip.slug}`}
           >
             Remix Trip
           </Link>
           <button
             aria-label={`Toggle save (${compactNumber(saves)} saves)`}
-            className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 px-3 text-slate-600 hover:bg-slate-50"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-slate-200 px-3 text-slate-600 hover:bg-slate-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
             disabled={pendingSave}
             onClick={toggleSave}
             type="button"
