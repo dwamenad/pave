@@ -84,108 +84,125 @@ export function LandingForm() {
   }
 
   return (
-    <Card className="space-y-6 rounded-2xl p-6">
-      <div className="space-y-3">
-        <div className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
-          <Sparkles className="h-3.5 w-3.5" />
-          AI Powered Itineraries
-        </div>
-        <h1 className="text-4xl font-extrabold leading-tight tracking-tight">
-          Turn Inspiration into <span className="text-primary">Action</span>
-        </h1>
-        <p className="text-sm text-muted-foreground">
-          Paste social links and caption text, confirm the destination, and create a ready-to-edit trip plan.
-        </p>
-      </div>
+    <Card className="space-y-8 rounded-3xl border-slate-200 p-6 md:p-8">
+      <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Build From Social Inspiration</h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Paste links and caption context, detect location hints, then jump into place discovery.
+            </p>
+          </div>
 
-      <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Search city, landmark, or venue</label>
-        <div className="flex items-center gap-2 rounded-xl border bg-white px-3">
-          <MapPin className="h-4 w-4 text-muted-foreground" />
-          <Input
-            className="border-0 px-0 focus:ring-0"
-            value={query}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Try: Eiffel Tower, Accra, NYC"
-          />
-        </div>
-      </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Search city, landmark, or venue</label>
+            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
+              <MapPin className="h-4 w-4 text-slate-400" />
+              <Input
+                className="border-0 px-0 focus:ring-0"
+                value={query}
+                onChange={(e) => onSearchChange(e.target.value)}
+                placeholder="Try: Eiffel Tower, Accra, NYC"
+              />
+            </div>
+          </div>
 
-      <div className="space-y-2">
-        <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Paste 1-5 social links or caption text</label>
-        <Textarea
-          className="min-h-24 rounded-xl"
-          value={linksInput}
-          onChange={(e) => setLinksInput(e.target.value)}
-          placeholder="Paste social links (one per line)"
-        />
-        <Textarea
-          className="min-h-28 rounded-xl"
-          value={socialInput}
-          onChange={(e) => setSocialInput(e.target.value)}
-          placeholder="Paste Instagram/TikTok/YouTube links or text like: best coffee in Paris near Eiffel Tower"
-        />
-      </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Social links (1-5)</label>
+            <Textarea
+              className="min-h-20 rounded-xl"
+              value={linksInput}
+              onChange={(e) => setLinksInput(e.target.value)}
+              placeholder="Paste links (one per line)"
+            />
+          </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button className="rounded-xl px-4 font-bold" type="button" onClick={parseSocial} disabled={!socialInput.trim() || loading}>
-          <Wand2 className="mr-2 h-4 w-4" />
-          {loading ? "Parsing..." : "Parse location hints"}
-        </Button>
-        <Button
-          className="rounded-xl px-4 font-bold"
-          type="button"
-          variant="outline"
-          disabled={!canBuild}
-          onClick={() => suggestions[0] && goToPlace(suggestions[0].placeId)}
-        >
-          <Link2 className="mr-2 h-4 w-4" />
-          Build my plan
-        </Button>
-      </div>
+          <div className="space-y-2">
+            <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Caption or notes</label>
+            <Textarea
+              className="min-h-28 rounded-xl"
+              value={socialInput}
+              onChange={(e) => setSocialInput(e.target.value)}
+              placeholder="Best coffee in Paris near Eiffel Tower, cozy hotel nearby, and local spots..."
+            />
+          </div>
 
-      {parseResult?.hints?.length ? (
-        <div className="flex flex-wrap gap-2">
-          {parseResult.hints.map((hint) => (
-            <span key={hint} className="rounded-full bg-primary/10 px-2 py-1 text-xs font-semibold text-primary">
-              {hint}
-            </span>
-          ))}
-        </div>
-      ) : null}
-      {error ? <p className="text-xs text-red-600">{error}</p> : null}
-
-      {parseResult?.ambiguous?.length ? (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold">Confirm intended location</p>
-          {parseResult.ambiguous.map((s) => (
-            <button
-              key={s.placeId}
-              className="block w-full rounded-xl border bg-white px-3 py-2 text-left text-sm font-medium hover:bg-muted"
-              onClick={() => goToPlace(s.placeId)}
+          <div className="flex flex-wrap gap-2">
+            <Button className="rounded-xl px-4 font-bold" type="button" onClick={parseSocial} disabled={!socialInput.trim() || loading}>
+              <Wand2 className="mr-2 h-4 w-4" />
+              {loading ? "Parsing..." : "Parse location hints"}
+            </Button>
+            <Button
+              className="rounded-xl px-4 font-bold"
               type="button"
+              variant="outline"
+              disabled={!canBuild}
+              onClick={() => suggestions[0] && goToPlace(suggestions[0].placeId)}
             >
-              {s.text}
-            </button>
-          ))}
+              <Link2 className="mr-2 h-4 w-4" />
+              Build my plan
+            </Button>
+          </div>
         </div>
-      ) : null}
 
-      {suggestions.length ? (
-        <div className="space-y-2">
-          <p className="text-sm font-semibold">Suggestions</p>
-          {suggestions.map((s) => (
-            <button
-              key={s.placeId}
-              className="block w-full rounded-xl border bg-white px-3 py-2 text-left text-sm font-medium hover:bg-muted"
-              onClick={() => goToPlace(s.placeId)}
-              type="button"
-            >
-              {s.text}
-            </button>
-          ))}
+        <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Signal Preview</h3>
+
+          {parseResult?.hints?.length ? (
+            <div className="flex flex-wrap gap-2">
+              {parseResult.hints.map((hint) => (
+                <span key={hint} className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">
+                  {hint}
+                </span>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-slate-500">Parse social text to see detected hints.</p>
+          )}
+
+          {parseResult?.ambiguous?.length ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-500">Confirm intended location</p>
+              {parseResult.ambiguous.map((s) => (
+                <button
+                  key={s.placeId}
+                  className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-700 hover:border-primary hover:text-primary"
+                  onClick={() => goToPlace(s.placeId)}
+                  type="button"
+                >
+                  {s.text}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          {suggestions.length ? (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-slate-500">Suggestions</p>
+              {suggestions.map((s) => (
+                <button
+                  key={s.placeId}
+                  className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-700 hover:border-primary hover:text-primary"
+                  onClick={() => goToPlace(s.placeId)}
+                  type="button"
+                >
+                  {s.text}
+                </button>
+              ))}
+            </div>
+          ) : null}
+
+          <div className="rounded-xl bg-white p-3">
+            <p className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              Pro tip
+            </p>
+            <p className="mt-1 text-sm text-slate-600">Include vibe words like “budget”, “luxury”, “food”, or “hike” for better recommendations.</p>
+          </div>
+
+          {error ? <p className="text-xs text-red-600">{error}</p> : null}
         </div>
-      ) : null}
+      </div>
     </Card>
   );
 }

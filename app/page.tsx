@@ -1,40 +1,42 @@
 import Link from "next/link";
-import { Camera, Compass, MapPinned } from "lucide-react";
+import { ArrowRight, Compass, MapPinned, Sparkles } from "lucide-react";
 import { LandingForm } from "@/components/landing-form";
 
 export default function HomePage() {
   return (
-    <div className="space-y-10 py-2">
-      <section className="grid gap-8 rounded-2xl border bg-white p-6 md:grid-cols-2 md:p-8">
-        <div className="space-y-4">
+    <div className="space-y-12 py-2">
+      <section className="grid gap-8 overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 md:grid-cols-2 md:p-10">
+        <div className="space-y-5">
           <p className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-primary">
-            <Compass className="h-3.5 w-3.5" />
-            Social to itinerary
+            <Sparkles className="h-3.5 w-3.5" />
+            AI Powered Itineraries
           </p>
-          <h1 className="text-4xl font-extrabold leading-tight tracking-tight md:text-5xl">
-            Plan trips from what you discover online.
+          <h1 className="text-4xl font-black leading-tight tracking-tight text-slate-900 md:text-5xl lg:text-6xl">
+            Turn travel inspiration into action.
           </h1>
-          <p className="text-sm text-muted-foreground md:text-base">
-            Paste social links, generate a practical itinerary, remix community plans, and share your own travel flow.
+          <p className="text-base text-slate-600">
+            Convert social links into practical itineraries, remix community plans, and share your own route in minutes.
           </p>
           <div className="flex flex-wrap gap-2">
-            <Link href="/feed" className="rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90">
+            <Link href="/feed" className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90">
               Explore feed
+              <ArrowRight className="h-4 w-4" />
             </Link>
-            <Link href="/create" className="rounded-lg border bg-white px-4 py-2 text-sm font-semibold hover:bg-muted">
+            <Link href="/create" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 hover:border-primary hover:text-primary">
               Create itinerary
             </Link>
           </div>
         </div>
-        <div className="relative min-h-52 overflow-hidden rounded-2xl border bg-gradient-to-tr from-primary/15 via-sky-100 to-teal-100 p-5">
-          <div className="absolute -right-12 -top-10 h-40 w-40 rounded-full bg-primary/20 blur-2xl" />
+
+        <div className="relative min-h-64 overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-tr from-primary/15 via-cyan-100 to-blue-100 p-5">
+          <div className="absolute -right-10 -top-10 h-44 w-44 rounded-full bg-primary/20 blur-3xl" />
           <div className="relative space-y-3">
             <p className="text-xs font-bold uppercase tracking-wide text-primary">What you can do</p>
             <p className="rounded-lg bg-white/80 px-3 py-2 text-sm font-medium text-slate-700 backdrop-blur">
-              Convert Instagram/TikTok/YouTube links into a 1-3 day trip.
+              Convert Instagram/TikTok/YouTube links into 1-3 day plans.
             </p>
             <p className="rounded-lg bg-white/80 px-3 py-2 text-sm font-medium text-slate-700 backdrop-blur">
-              Remix itineraries from the feed and export PDFs.
+              Remix itinerary posts and publish to the social feed.
             </p>
             <p className="rounded-lg bg-white/80 px-3 py-2 text-sm font-medium text-slate-700 backdrop-blur">
               Share trip links and collect group votes.
@@ -46,20 +48,22 @@ export default function HomePage() {
       <LandingForm />
 
       <section className="grid gap-4 md:grid-cols-3">
-        <Link href="/nearby" className="surface-card group p-4 hover:border-primary">
+        <Link href="/nearby" className="social-card p-5 hover:border-primary">
           <MapPinned className="mb-2 h-5 w-5 text-primary" />
-          <h2 className="font-bold">Nearby Now</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Get quick picks within 10-15 minutes on mobile.</p>
+          <h2 className="text-lg font-bold text-slate-900">Nearby Now</h2>
+          <p className="mt-1 text-sm text-slate-500">Quick location-based picks for food, coffee, and activities.</p>
         </Link>
-        <Link href="/feed" className="surface-card group p-4 hover:border-primary">
-          <Camera className="mb-2 h-5 w-5 text-primary" />
-          <h2 className="font-bold">Social Feed</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Discover public itineraries and remix travel ideas.</p>
+
+        <Link href="/feed" className="social-card p-5 hover:border-primary">
+          <Sparkles className="mb-2 h-5 w-5 text-primary" />
+          <h2 className="text-lg font-bold text-slate-900">Social Feed</h2>
+          <p className="mt-1 text-sm text-slate-500">Discover public itineraries and remix travel ideas.</p>
         </Link>
-        <Link href="/create" className="surface-card group p-4 hover:border-primary">
+
+        <Link href="/create" className="social-card p-5 hover:border-primary">
           <Compass className="mb-2 h-5 w-5 text-primary" />
-          <h2 className="font-bold">Create</h2>
-          <p className="mt-1 text-sm text-muted-foreground">Use preferences and parsed hints to build your own plan.</p>
+          <h2 className="text-lg font-bold text-slate-900">Create</h2>
+          <p className="mt-1 text-sm text-slate-500">Tune preferences and generate plans from social context.</p>
         </Link>
       </section>
     </div>
