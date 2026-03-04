@@ -4,6 +4,10 @@ import type { Session } from "next-auth";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 
+if (!process.env.NEXTAUTH_URL) {
+  process.env.NEXTAUTH_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     GoogleProvider({
