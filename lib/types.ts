@@ -73,11 +73,13 @@ export type PostSummary = {
     username?: string | null;
     name?: string | null;
     image?: string | null;
+    bio?: string | null;
   };
   trip: {
     id: string;
     slug: string;
     title: string;
+    daysCount: number;
   };
   counts: {
     likes: number;

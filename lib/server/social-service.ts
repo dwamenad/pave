@@ -66,7 +66,8 @@ const postQueryArgs = Prisma.validator<Prisma.PostFindManyArgs>()({
         id: true,
         username: true,
         name: true,
-        image: true
+        image: true,
+        bio: true
       }
     },
     trip: {
@@ -76,7 +77,8 @@ const postQueryArgs = Prisma.validator<Prisma.PostFindManyArgs>()({
         title: true,
         _count: {
           select: {
-            remixedFrom: true
+            remixedFrom: true,
+            days: true
           }
         }
       }
@@ -126,12 +128,14 @@ function mapToSummary(input: RankedCandidate): PostSummary {
       id: post.author.id,
       username: post.author.username,
       name: post.author.name,
-      image: post.author.image
+      image: post.author.image,
+      bio: post.author.bio
     },
     trip: {
       id: post.trip.id,
       slug: post.trip.slug,
-      title: post.trip.title
+      title: post.trip.title,
+      daysCount: post.trip._count.days
     },
     counts: {
       likes: post._count.likes,
@@ -381,7 +385,15 @@ export async function getPostDetail(postId: string, userId?: string): Promise<Po
     where: { id: postId },
     include: {
       author: true,
-      trip: true,
+      trip: {
+        include: {
+          _count: {
+            select: {
+              days: true
+            }
+          }
+        }
+      },
       sourceLinks: true,
       comments: {
         where: {
@@ -425,12 +437,14 @@ export async function getPostDetail(postId: string, userId?: string): Promise<Po
       id: post.author.id,
       username: post.author.username,
       name: post.author.name,
-      image: post.author.image
+      image: post.author.image,
+      bio: post.author.bio
     },
     trip: {
       id: post.trip.id,
       slug: post.trip.slug,
-      title: post.trip.title
+      title: post.trip.title,
+      daysCount: post.trip._count.days
     },
     counts: {
       likes: post._count.likes,
@@ -499,7 +513,15 @@ export async function getPostsByUsername(username: string, viewerUserId?: string
     },
     include: {
       author: true,
-      trip: true,
+      trip: {
+        include: {
+          _count: {
+            select: {
+              days: true
+            }
+          }
+        }
+      },
       _count: {
         select: {
           likes: true,
@@ -530,12 +552,14 @@ export async function getPostsByUsername(username: string, viewerUserId?: string
       id: post.author.id,
       username: post.author.username,
       name: post.author.name,
-      image: post.author.image
+      image: post.author.image,
+      bio: post.author.bio
     },
     trip: {
       id: post.trip.id,
       slug: post.trip.slug,
-      title: post.trip.title
+      title: post.trip.title,
+      daysCount: post.trip._count.days
     },
     counts: {
       likes: post._count.likes,
@@ -550,7 +574,15 @@ export async function getPostsByUsername(username: string, viewerUserId?: string
       post: {
         include: {
           author: true,
-          trip: true,
+          trip: {
+            include: {
+              _count: {
+                select: {
+                  days: true
+                }
+              }
+            }
+          },
           _count: {
             select: {
               likes: true,
@@ -586,12 +618,14 @@ export async function getPostsByUsername(username: string, viewerUserId?: string
         id: post.author.id,
         username: post.author.username,
         name: post.author.name,
-        image: post.author.image
+        image: post.author.image,
+        bio: post.author.bio
       },
       trip: {
         id: post.trip.id,
         slug: post.trip.slug,
-        title: post.trip.title
+        title: post.trip.title,
+        daysCount: post.trip._count.days
       },
       counts: {
         likes: post._count.likes,

@@ -1,11 +1,12 @@
 import Link from "next/link";
-import { Compass, Rocket, TrendingUp, UserRoundCheck } from "lucide-react";
+import { Compass, Rocket, ShieldCheck, TrendingUp, UserRoundCheck } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { buildTrendingDestinations, derivePlannerRole } from "@/lib/feed-view-model";
 import { trackEventWithActor, trackFeedImpressions } from "@/lib/server/events";
 import { getOrCreateSessionToken } from "@/lib/server/session";
 import { getFeed } from "@/lib/server/social-service";
-import { PostFeedCard } from "@/components/post-feed-card";
 import type { FeedSource } from "@/lib/types";
+import { FeedListClient } from "@/components/feed-list-client";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,20 @@ function sourceFromQuery(source?: string): FeedSource {
   if (source === "trending") return "TRENDING";
   return "FOR_YOU";
 }
+
+function sourceHref(source: FeedSource) {
+  if (source === "FOLLOWING") return "/feed?source=following";
+  if (source === "TRENDING") return "/feed?source=trending";
+  return "/feed";
+}
+
+const categoryChips = [
+  { label: "All Categories", icon: null as string | null },
+  { label: "Adventure", icon: "hiking" },
+  { label: "Luxury", icon: "diamond" },
+  { label: "Budget", icon: "payments" },
+  { label: "Solo", icon: "person" }
+];
 
 export default async function FeedPage({ searchParams }: { searchParams?: { source?: string } }) {
   const user = await getCurrentUser();
@@ -39,151 +54,204 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
     })
   ]);
 
-  const trendCounts = new Map<string, number>();
-  const creatorStats = new Map<string, { name: string; username?: string | null; score: number }>();
+  const trending = buildTrendingDestinations(feed.items, 3);
+
+  const creatorStats = new Map<
+    string,
+    {
+      id: string;
+      name: string;
+      username?: string | null;
+      image?: string | null;
+      bio?: string | null;
+      score: number;
+    }
+  >();
 
   for (const post of feed.items) {
-    const destination = post.destinationLabel || post.trip.title;
-    trendCounts.set(destination, (trendCounts.get(destination) || 0) + 1);
     const current = creatorStats.get(post.author.id);
     const score = post.counts.likes + post.counts.comments + post.counts.saves;
+
     if (current) {
-      creatorStats.set(post.author.id, { ...current, score: current.score + score });
-    } else {
       creatorStats.set(post.author.id, {
-        name: post.author.name || post.author.username || "Traveler",
-        username: post.author.username,
-        score
+        ...current,
+        score: current.score + score
       });
+      continue;
     }
+
+    creatorStats.set(post.author.id, {
+      id: post.author.id,
+      name: post.author.name || post.author.username || "Traveler",
+      username: post.author.username,
+      image: post.author.image,
+      bio: post.author.bio,
+      score
+    });
   }
 
-  const trending = [...trendCounts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
   const creators = [...creatorStats.values()]
-    .sort((a, b) => b.score - a.score)
-    .slice(0, 3);
+    .sort((a, b) => b.score - a.score || a.name.localeCompare(b.name))
+    .slice(0, 3)
+    .map((creator) => ({
+      ...creator,
+      role: derivePlannerRole({
+        bio: creator.bio,
+        score: creator.score,
+        name: creator.name
+      })
+    }));
 
   return (
     <div className="space-y-8">
-      <section className="flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h1 className="text-4xl font-extrabold tracking-tight">Social Itinerary Feed</h1>
-          <p className="mt-2 text-base text-muted-foreground">Discover and remix community-crafted journeys from around the globe.</p>
-        </div>
-        <Link href="/create" className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90">
-          <Compass className="h-4 w-4" />
-          Create itinerary post
-        </Link>
-      </section>
-
       <div className="flex flex-col gap-8 lg:flex-row">
-        <section className="flex-1 space-y-6">
-          <div className="flex gap-2 overflow-x-auto pb-1">
-            {[
-              { label: "For You", href: "/feed" },
-              { label: "Following", href: "/feed?source=following" },
-              { label: "Trending", href: "/feed?source=trending" }
-            ].map((chip) => {
-              const active =
-                (source === "FOR_YOU" && chip.href === "/feed") ||
-                (source === "FOLLOWING" && chip.href.includes("following")) ||
-                (source === "TRENDING" && chip.href.includes("trending"));
+        <section className="flex-1">
+          <div className="mb-8">
+            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Social Itinerary Feed</h1>
+            <p className="mt-2 text-lg text-slate-600">Discover and remix community-crafted journeys from around the globe.</p>
+          </div>
 
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            {(["FOR_YOU", "FOLLOWING", "TRENDING"] as FeedSource[]).map((mode) => {
+              const active = mode === source;
               return (
                 <Link
-                  key={chip.label}
+                  key={mode}
                   className={
                     active
-                      ? "rounded-full bg-primary px-4 py-2 text-xs font-bold text-white"
-                      : "rounded-full border bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary"
+                      ? "inline-flex items-center rounded-full bg-primary px-4 py-2 text-xs font-bold text-white"
+                      : "inline-flex items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary"
                   }
-                  href={chip.href}
+                  href={sourceHref(mode)}
                 >
-                  {chip.label}
+                  {mode === "FOR_YOU" ? "For You" : mode === "FOLLOWING" ? "Following" : "Trending"}
                 </Link>
               );
             })}
           </div>
 
-          {feed.items.length ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              {feed.items.map((post) => (
-                <PostFeedCard key={post.id} post={post} />
-              ))}
-            </div>
-          ) : (
-            <div className="surface-card p-6 text-sm text-muted-foreground">No posts yet. Publish your first itinerary to start the feed.</div>
-          )}
-
-          {feed.nextCursor ? (
-            <div className="flex justify-center">
-              <button className="rounded-lg border border-primary px-5 py-2 text-sm font-semibold text-primary hover:bg-primary/10" type="button">
-                Load More Trips
+          <div className="mb-8 flex gap-3 overflow-x-auto pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
+            {categoryChips.map((chip, idx) => (
+              <button
+                key={chip.label}
+                aria-label={`${chip.label} category`}
+                className={
+                  idx === 0
+                    ? "inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-4 py-2 text-sm font-semibold text-white"
+                    : "inline-flex items-center gap-2 whitespace-nowrap rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-primary"
+                }
+                type="button"
+              >
+                {chip.label}
               </button>
-            </div>
-          ) : null}
+            ))}
+          </div>
+
+          <FeedListClient initialItems={feed.items} initialNextCursor={feed.nextCursor} source={source} />
         </section>
 
         <aside className="w-full space-y-6 lg:w-80">
-          <section className="surface-card p-5">
-            <div className="mb-4 flex items-center gap-2">
+          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-5 flex items-center gap-2">
               <TrendingUp className="h-4 w-4 text-primary" />
-              <h2 className="text-base font-bold">Trending Now</h2>
+              <h2 className="text-lg font-bold text-slate-900">Trending Now</h2>
             </div>
+
             {trending.length ? (
-              <ul className="space-y-3">
-                {trending.map(([destination, count]) => (
-                  <li key={destination} className="rounded-lg bg-muted/50 px-3 py-2">
-                    <p className="text-sm font-semibold text-slate-800">{destination}</p>
-                    <p className="text-xs text-muted-foreground">{count} itineraries in this feed</p>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-xs text-muted-foreground">No trending destinations yet.</p>
-            )}
-          </section>
-
-          <section className="surface-card p-5">
-            <div className="mb-4 flex items-center gap-2">
-              <UserRoundCheck className="h-4 w-4 text-primary" />
-              <h2 className="text-base font-bold">Top Planners</h2>
-            </div>
-            {creators.length ? (
-              <ul className="space-y-3">
-                {creators.map((creator) => (
-                  <li key={`${creator.username || creator.name}`} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-2">
-                    <div>
-                      <p className="text-sm font-semibold">{creator.name}</p>
-                      <p className="text-xs text-muted-foreground">Engagement score: {creator.score}</p>
+              <ul className="space-y-4">
+                {trending.map((entry) => (
+                  <li key={entry.destination} className="flex items-center gap-3">
+                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                      {entry.thumbnailUrl ? (
+                        <img alt={entry.destination} className="h-full w-full object-cover" src={entry.thumbnailUrl} />
+                      ) : (
+                        <div className="h-full w-full bg-gradient-to-br from-cyan-100 to-blue-100" />
+                      )}
                     </div>
-                    {creator.username ? (
-                      <Link className="text-xs font-semibold text-primary hover:underline" href={`/profile/${creator.username}`}>
-                        View
-                      </Link>
-                    ) : null}
+                    <div>
+                      <p className="text-sm font-bold text-slate-900">{entry.destination}</p>
+                      <p className="text-xs text-slate-500">{entry.count} itineraries this week</p>
+                    </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-muted-foreground">Top planners will show up when posts are published.</p>
+              <p className="text-xs text-slate-500">No trending destinations yet.</p>
+            )}
+
+            <button
+              className="mt-6 inline-flex w-full items-center justify-center rounded-lg bg-primary/10 px-4 py-2 text-sm font-bold text-primary hover:bg-primary/20"
+              type="button"
+            >
+              View All Trends
+            </button>
+          </section>
+
+          <section className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-5 flex items-center gap-2">
+              <UserRoundCheck className="h-4 w-4 text-primary" />
+              <h2 className="text-lg font-bold text-slate-900">Top Planners</h2>
+            </div>
+
+            {creators.length ? (
+              <ul className="space-y-4">
+                {creators.map((creator) => (
+                  <li key={creator.id} className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-100">
+                        {creator.image ? <img alt={creator.name} className="h-full w-full object-cover" src={creator.image} /> : null}
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-slate-900">{creator.name}</p>
+                        <p className="text-xs text-slate-500">{creator.role}</p>
+                      </div>
+                    </div>
+
+                    {creator.username ? (
+                      <Link className="text-sm font-bold text-primary hover:underline" href={`/profile/${creator.username}`}>
+                        Follow
+                      </Link>
+                    ) : (
+                      <span className="text-sm font-bold text-slate-300">Follow</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-xs text-slate-500">Top planners appear as engagement grows.</p>
             )}
           </section>
 
-          <section className="overflow-hidden rounded-xl bg-primary p-5 text-white shadow-sm">
-            <Rocket className="mb-3 h-6 w-6" />
-            <h3 className="text-lg font-bold">Build Your Own</h3>
-            <p className="mt-1 text-sm text-white/90">Create a trip from social inspiration and publish it to the community feed.</p>
+          <section className="overflow-hidden rounded-xl bg-primary p-6 text-center text-white shadow-sm">
+            <Rocket className="mx-auto mb-4 h-8 w-8" />
+            <h3 className="text-2xl font-bold">Build Your Own</h3>
+            <p className="mt-2 text-sm text-white/85">Create, share, and get remixed by the community!</p>
             <Link
-              className="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-white px-4 py-2 text-sm font-bold text-primary hover:bg-slate-100"
+              className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-white px-4 py-3 text-sm font-extrabold text-primary hover:bg-slate-50"
               href="/create"
             >
               Start Planning
             </Link>
           </section>
+
+          <section className="rounded-xl border border-slate-200 bg-white p-4 text-xs text-slate-500 shadow-sm">
+            <div className="mb-2 flex items-center gap-2 text-slate-700">
+              <ShieldCheck className="h-4 w-4 text-primary" />
+              <span className="font-semibold">Safety reminder</span>
+            </div>
+            Report harmful posts in detail view. Blocked users are hidden from your feed.
+          </section>
         </aside>
+      </div>
+
+      <div className="flex justify-end">
+        <Link
+          className="inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90"
+          href="/create"
+        >
+          <Compass className="h-4 w-4" />
+          Create itinerary post
+        </Link>
       </div>
     </div>
   );
