@@ -18,6 +18,7 @@ import { getSessionTokenFromRequest } from "@/lib/server/session";
 import { getFeed } from "@/lib/server/social-service";
 import type { FeedSource } from "@/lib/types";
 import { FeedListClient } from "@/components/feed-list-client";
+import { FeedOnboardingStrip } from "@/components/feed-onboarding-strip";
 import { PillChip } from "@/components/social/pill-chip";
 import { RailCard } from "@/components/social/rail-card";
 
@@ -123,6 +124,8 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             <h1 className="social-hero-title">Social Itinerary Feed</h1>
             <p className="social-hero-subtitle">Discover and remix community-crafted journeys from around the globe.</p>
           </div>
+
+          <FeedOnboardingStrip />
 
           <div className="mb-5 flex flex-wrap items-center gap-2">
             {(["FOR_YOU", "FOLLOWING", "TRENDING"] as FeedSource[]).map((mode) => {
