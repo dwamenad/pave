@@ -7,7 +7,7 @@ import type { TripData } from "@/components/trip-builder";
 import { TripSocialActions } from "@/components/trip-social-actions";
 import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { trackEventWithActor } from "@/lib/server/events";
+import { trackEvent } from "@/lib/server/events";
 import { getTripBySlug, getVoteTotals } from "@/lib/server/trip-service";
 
 export const dynamic = "force-dynamic";
@@ -38,7 +38,7 @@ export default async function TripPage({
       }
     });
 
-    await trackEventWithActor({
+    await trackEvent({
       name: "share_trip",
       userId: user?.id,
       sessionId: token,

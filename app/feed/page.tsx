@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { buildTrendingDestinations, derivePlannerRole } from "@/lib/feed-view-model";
-import { trackEventWithActor, trackFeedImpressions } from "@/lib/server/events";
-import { getOrCreateSessionToken } from "@/lib/server/session";
+import { trackEvent, trackFeedImpressions } from "@/lib/server/events";
+import { getSessionTokenFromRequest } from "@/lib/server/session";
 import { getFeed } from "@/lib/server/social-service";
 import type { FeedSource } from "@/lib/types";
 import { FeedListClient } from "@/components/feed-list-client";
@@ -45,12 +45,12 @@ const categoryChips = [
 
 export default async function FeedPage({ searchParams }: { searchParams?: { source?: string } }) {
   const user = await getCurrentUser();
-  const sessionId = await getOrCreateSessionToken();
+  const sessionId = getSessionTokenFromRequest();
   const source = sourceFromQuery(searchParams?.source);
   const feed = await getFeed({ source, userId: user?.id });
 
   await Promise.all([
-    trackEventWithActor({
+    trackEvent({
       name: "view_feed",
       userId: user?.id,
       sessionId,

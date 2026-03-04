@@ -4,6 +4,11 @@ import { db } from "@/lib/db";
 
 const COOKIE_NAME = "oca_session";
 
+export function getSessionTokenFromRequest() {
+  const cookieStore = cookies();
+  return cookieStore.get(COOKIE_NAME)?.value || nanoid(24);
+}
+
 export async function getOrCreateAnonymousSession() {
   const cookieStore = cookies();
   const existing = cookieStore.get(COOKIE_NAME)?.value;
