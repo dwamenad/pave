@@ -3,12 +3,16 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import {
+  Bookmark,
   Camera,
   Flag,
+  MapPin,
   MessageCircle,
   Play,
   Send,
+  Share2,
   Sparkles,
+  UserRound,
   type LucideIcon
 } from "lucide-react";
 import type { PostDetail } from "@/lib/types";
@@ -40,6 +44,10 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
   const [reportReason, setReportReason] = useState("");
   const [pendingComment, setPendingComment] = useState(false);
   const [pendingReport, setPendingReport] = useState(false);
+  const [pendingSave, setPendingSave] = useState(false);
+  const [pendingShare, setPendingShare] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saveCount, setSaveCount] = useState(post.counts.saves);
   const profileHref = post.author.username ? `/profile/${post.author.username}` : null;
 
   const dayPreview = useMemo(() => {
@@ -94,10 +102,49 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
     }
   }
 
+  async function toggleSave() {
+    if (pendingSave) return;
+    setPendingSave(true);
+
+    try {
+      const response = await fetch(`/api/posts/${post.id}/save`, { method: "POST" });
+      if (!response.ok) return;
+      const data = (await response.json()) as { saved?: boolean };
+      const nextSaved = Boolean(data.saved);
+      setSaved(nextSaved);
+      setSaveCount((prev) => (nextSaved ? prev + 1 : Math.max(0, prev - 1)));
+    } finally {
+      setPendingSave(false);
+    }
+  }
+
+  async function sharePost() {
+    if (pendingShare) return;
+    setPendingShare(true);
+
+    try {
+      const shareData = {
+        title: post.trip.title,
+        text: post.caption.slice(0, 140),
+        url: window.location.href
+      };
+
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+      }
+    } catch {
+      // no-op when share is cancelled or clipboard is unavailable
+    } finally {
+      setPendingShare(false);
+    }
+  }
+
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
       <section className="space-y-10 lg:col-span-8">
-        <article className="space-y-6">
+        <article className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
           <div>
             <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900">
               {post.trip.title}
@@ -110,7 +157,8 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
               <img alt={post.trip.title} className="h-full w-full object-cover" src={post.mediaUrl} />
             ) : (
               <div className="social-floating-gradient flex h-full items-end p-6">
-                <p className="rounded-lg bg-white/80 px-3 py-2 text-sm font-semibold text-slate-800 backdrop-blur">
+                <p className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-3 py-2 text-sm font-semibold text-slate-800 backdrop-blur">
+                  <MapPin className="h-3.5 w-3.5 text-primary" />
                   {post.destinationLabel || post.trip.title}
                 </p>
               </div>
@@ -146,9 +194,11 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
                 <span className="text-xs font-bold text-primary">{String(day.dayIndex).padStart(2, "0")}</span>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">Day {day.dayIndex}</h3>
+                  <h3 className="text-xl font-bold text-slate-900">
+                    Day {day.dayIndex}: {day.items[0]?.name || "Itinerary preview"}
+                  </h3>
                   <p className="text-sm text-slate-500">{distanceLabel(day.items.length)}</p>
                 </div>
 
@@ -161,6 +211,10 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
                         {item.notes ? <p className="mt-1 text-sm text-slate-600">{item.notes}</p> : null}
                       </div>
                     ))}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="h-28 rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100" />
+                      <div className="h-28 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100" />
+                    </div>
                   </div>
                 ) : (
                   <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
@@ -179,7 +233,9 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
             {post.author.image ? (
               <img alt={post.author.name || "Creator"} className="h-12 w-12 rounded-full object-cover" src={post.author.image} />
             ) : (
-              <div className="h-12 w-12 rounded-full bg-primary/15" />
+              <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/15">
+                <UserRound className="h-5 w-5 text-primary" />
+              </div>
             )}
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-primary">Created by</p>
@@ -190,16 +246,27 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
               ) : (
                 <p className="text-base font-bold text-slate-900">{post.author.name || "Traveler"}</p>
               )}
+              <p className="text-xs text-slate-500">{post.counts.likes + post.counts.comments} total interactions</p>
             </div>
           </div>
 
           <Link
             href={`/trip/${post.trip.slug}`}
-            className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:opacity-90"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-bold text-white hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
           >
             <Sparkles className="h-4 w-4" />
             Remix this Trip
           </Link>
+
+          <button
+            type="button"
+            onClick={toggleSave}
+            disabled={pendingSave}
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Bookmark className={`h-4 w-4 ${saved ? "fill-primary text-primary" : ""}`} />
+            {saved ? "Saved itinerary" : "Save itinerary"} ({saveCount})
+          </button>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-slate-50 p-3">
@@ -207,8 +274,8 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
               <span className="font-bold text-slate-900">{post.trip.daysCount || 1} Days</span>
             </div>
             <div className="rounded-xl bg-slate-50 p-3">
-              <span className="block text-xs text-slate-500">Engagement</span>
-              <span className="font-bold text-slate-900">{post.counts.likes + post.counts.comments}</span>
+              <span className="block text-xs text-slate-500">Comments</span>
+              <span className="font-bold text-slate-900">{post.counts.comments}</span>
             </div>
           </div>
 
@@ -238,7 +305,7 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
               />
-              <Button className="h-10 w-10 rounded-xl p-0" onClick={addComment} disabled={pendingComment}>
+              <Button className="h-10 w-10 rounded-xl p-0" onClick={addComment} disabled={pendingComment} aria-label="Send comment">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
@@ -257,6 +324,15 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
                 Report
               </Button>
             </div>
+            <button
+              type="button"
+              onClick={sharePost}
+              disabled={pendingShare}
+              className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <Share2 className="h-3.5 w-3.5" />
+              Share itinerary
+            </button>
           </section>
         </div>
       </aside>
