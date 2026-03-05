@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
+import { isTrackedEventName } from "@/lib/event-taxonomy";
 import { getOrCreateAnonymousSession } from "@/lib/server/session";
 
 type EventInput = {
@@ -36,7 +37,7 @@ export async function POST(request: NextRequest) {
   const rows = rawEvents
     .map((event) => {
       const name = typeof event.name === "string" ? event.name.trim().toLowerCase().slice(0, 60) : "";
-      if (!name) return null;
+      if (!name || !isTrackedEventName(name)) return null;
 
       return {
         name,
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
     .filter((item): item is NonNullable<typeof item> => Boolean(item));
 
   if (!rows.length) {
-    return NextResponse.json({ error: "No valid events in batch" }, { status: 400 });
+    return NextResponse.json({ error: "No valid tracked events in batch" }, { status: 400 });
   }
 
   const created = await db.event.createMany({

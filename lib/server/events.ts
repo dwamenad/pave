@@ -1,18 +1,8 @@
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { isTrackedEventName } from "@/lib/event-taxonomy";
 import { getOrCreateAnonymousSession } from "@/lib/server/session";
 import type { FeedSource } from "@/lib/types";
-
-const ALLOWED_EVENTS = new Set([
-  "view_feed",
-  "view_post",
-  "save_post",
-  "remix_trip",
-  "publish_post",
-  "share_trip",
-  "comment_post",
-  "follow_user"
-]);
 
 type TrackEventInput = {
   name: string;
@@ -24,7 +14,7 @@ type TrackEventInput = {
 
 function sanitizeEventName(name: string) {
   const normalized = name.trim().toLowerCase();
-  if (ALLOWED_EVENTS.has(normalized)) return normalized;
+  if (isTrackedEventName(normalized)) return normalized;
   return normalized.slice(0, 60);
 }
 
