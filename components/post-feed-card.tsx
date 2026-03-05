@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { memo, useMemo, useState } from "react";
 import { Bookmark, Ellipsis, Heart, MessageCircle } from "lucide-react";
 import { formatFeedExcerpt } from "@/lib/feed-view-model";
 import type { PostSummary } from "@/lib/types";
@@ -24,13 +24,16 @@ function compactNumber(value: number) {
   return `${value}`;
 }
 
-export function PostFeedCard({ post }: Props) {
+function PostFeedCardComponent({ post }: Props) {
   const [likes, setLikes] = useState(post.counts.likes);
   const [saves, setSaves] = useState(post.counts.saves);
   const [imageFailed, setImageFailed] = useState(false);
   const [pendingLike, setPendingLike] = useState(false);
   const [pendingSave, setPendingSave] = useState(false);
-  const profileHref = post.author.username ? `/profile/${post.author.username}` : null;
+  const profileHref = useMemo(
+    () => (post.author.username ? `/profile/${post.author.username}` : null),
+    [post.author.username]
+  );
 
   async function toggleLike() {
     if (pendingLike) return;
@@ -64,6 +67,7 @@ export function PostFeedCard({ post }: Props) {
 
   const showImage = !!post.mediaUrl && !imageFailed && /^https?:\/\//.test(post.mediaUrl);
   const dayBadge = post.trip.daysCount > 0 ? `${post.trip.daysCount} DAYS` : "TRIP";
+  const excerpt = useMemo(() => formatFeedExcerpt(post.caption, 110), [post.caption]);
 
   return (
     <article className="social-card group overflow-hidden hover:shadow-md focus-within:ring-2 focus-within:ring-primary/30">
@@ -72,6 +76,8 @@ export function PostFeedCard({ post }: Props) {
           <img
             alt={post.destinationLabel || post.trip.title}
             className="h-full w-full object-cover transition-transform motion-safe:duration-300 group-hover:scale-[1.02]"
+            decoding="async"
+            loading="lazy"
             src={post.mediaUrl || ""}
             onError={() => setImageFailed(true)}
           />
@@ -93,7 +99,7 @@ export function PostFeedCard({ post }: Props) {
                 {post.destinationLabel || post.trip.title}
               </Link>
             </h3>
-            <p className="mt-2 line-clamp-2 text-sm italic leading-relaxed text-slate-500">{formatFeedExcerpt(post.caption, 110)}</p>
+            <p className="mt-2 line-clamp-2 text-sm italic leading-relaxed text-slate-500">{excerpt}</p>
           </div>
           <button
             aria-label="More post options"
@@ -107,7 +113,13 @@ export function PostFeedCard({ post }: Props) {
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             {post.author.image ? (
-              <img alt={post.author.name || "Author"} className="h-8 w-8 rounded-full object-cover" src={post.author.image} />
+              <img
+                alt={post.author.name || "Author"}
+                className="h-8 w-8 rounded-full object-cover"
+                decoding="async"
+                loading="lazy"
+                src={post.author.image}
+              />
             ) : (
               <div className="h-8 w-8 rounded-full bg-primary/15" />
             )}
@@ -159,3 +171,5 @@ export function PostFeedCard({ post }: Props) {
     </article>
   );
 }
+
+export const PostFeedCard = memo(PostFeedCardComponent);

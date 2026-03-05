@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, RefreshCw, Sparkles } from "lucide-react";
 import { PostFeedCard } from "@/components/post-feed-card";
 import { EmptyState } from "@/components/social/empty-state";
@@ -12,13 +12,16 @@ type Props = {
   source: FeedSource;
 };
 
-function dedupePosts(items: PostSummary[]) {
-  const seen = new Set<string>();
-  return items.filter((item) => {
-    if (seen.has(item.id)) return false;
+function mergeUniquePosts(existing: PostSummary[], incoming: PostSummary[]) {
+  if (!incoming.length) return existing;
+  const seen = new Set(existing.map((item) => item.id));
+  const merged = [...existing];
+  for (const item of incoming) {
+    if (seen.has(item.id)) continue;
     seen.add(item.id);
-    return true;
-  });
+    merged.push(item);
+  }
+  return merged;
 }
 
 export function FeedListClient({ initialItems, initialNextCursor, source }: Props) {
@@ -26,11 +29,16 @@ export function FeedListClient({ initialItems, initialNextCursor, source }: Prop
   const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const inFlight = useRef<AbortController | null>(null);
 
   const hasItems = useMemo(() => items.length > 0, [items]);
 
-  async function loadMore() {
+  const loadMore = useCallback(async () => {
     if (!nextCursor || loading) return;
+
+    inFlight.current?.abort();
+    const controller = new AbortController();
+    inFlight.current = controller;
 
     setLoading(true);
     setError(null);
@@ -40,7 +48,8 @@ export function FeedListClient({ initialItems, initialNextCursor, source }: Prop
         `/api/feed?source=${encodeURIComponent(source)}&cursor=${encodeURIComponent(nextCursor)}`,
         {
           method: "GET",
-          cache: "no-store"
+          cache: "no-store",
+          signal: controller.signal
         }
       );
 
@@ -54,14 +63,19 @@ export function FeedListClient({ initialItems, initialNextCursor, source }: Prop
       };
 
       const incoming = Array.isArray(payload.items) ? payload.items : [];
-      setItems((prev) => dedupePosts([...prev, ...incoming]));
+      setItems((prev) => mergeUniquePosts(prev, incoming));
       setNextCursor(payload.nextCursor ?? null);
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
       setError("Could not load more trips. Please try again.");
     } finally {
       setLoading(false);
     }
-  }
+  }, [loading, nextCursor, source]);
+
+  useEffect(() => () => inFlight.current?.abort(), []);
 
   return (
     <div className="space-y-8">

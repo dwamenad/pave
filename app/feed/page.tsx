@@ -150,6 +150,7 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
               return (
                 <Link
                   key={mode}
+                  prefetch={false}
                   className={
                     active
                       ? "inline-flex min-h-11 items-center rounded-full bg-primary px-4 py-2 text-xs font-bold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
@@ -226,6 +227,7 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
 
                     {creator.username ? (
                       <Link
+                        prefetch={false}
                         className="inline-flex min-h-10 items-center text-sm font-bold text-primary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
                         href={`/profile/${creator.username}`}
                       >
@@ -247,6 +249,7 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             <h3 className="text-2xl font-bold">Build Your Own</h3>
             <p className="mt-2 text-sm text-white/85">Create, share, and get remixed by the community!</p>
             <Link
+              prefetch={false}
               className="mt-6 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-[hsl(var(--cta))] px-4 py-3 text-sm font-extrabold text-white transition-colors hover:bg-[hsl(var(--cta)/0.9)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
               href="/create"
             >
@@ -264,6 +267,7 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
 
       <div className="flex justify-end">
         <Link
+          prefetch={false}
           className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
           href="/create"
         >
