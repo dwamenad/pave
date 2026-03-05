@@ -16,17 +16,22 @@ async function copyText(value: string) {
 export function ShareControls({ tripId }: { tripId: string }) {
   const [publicUrl, setPublicUrl] = useState("");
   const [groupUrl, setGroupUrl] = useState("");
+  const [status, setStatus] = useState("");
 
   async function makePublicLink() {
+    setStatus("Generating public link...");
     const response = await fetch(`/api/trips/${tripId}/share`, { method: "POST" });
     const data = (await response.json()) as { url?: string };
     setPublicUrl(data.url || "");
+    setStatus(data.url ? "Public link ready." : "Unable to generate public link.");
   }
 
   async function makeGroupLink() {
+    setStatus("Generating group voting link...");
     const response = await fetch(`/api/trips/${tripId}/invite`, { method: "POST" });
     const data = (await response.json()) as { url?: string };
     setGroupUrl(data.url || "");
+    setStatus(data.url ? "Group link ready." : "Unable to generate group link.");
   }
 
   return (
@@ -65,6 +70,8 @@ export function ShareControls({ tripId }: { tripId: string }) {
           </div>
         </div>
       ) : null}
+
+      {status ? <p className="text-xs text-slate-500">{status}</p> : null}
     </div>
   );
 }

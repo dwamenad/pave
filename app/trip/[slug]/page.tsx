@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPinned, Share2, Sparkles } from "lucide-react";
+import { CalendarDays, Download, MapPinned, Share2, Sparkles, Vote } from "lucide-react";
 import { ShareControls } from "@/components/share-controls";
 import { TripBuilder } from "@/components/trip-builder";
 import type { TripData } from "@/components/trip-builder";
@@ -91,13 +91,43 @@ export default async function TripPage({
         </div>
       </section>
 
+      <section className="social-card p-4">
+        <div className="flex flex-wrap gap-2">
+          <a
+            href="#trip-builder-section"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-primary hover:text-primary"
+          >
+            <MapPinned className="h-3.5 w-3.5" />
+            Planner view
+          </a>
+          <a
+            href="#trip-share-controls"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-primary hover:text-primary"
+          >
+            <Share2 className="h-3.5 w-3.5" />
+            Share links
+          </a>
+          <a
+            href="#trip-social-actions"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-primary hover:text-primary"
+          >
+            <Vote className="h-3.5 w-3.5" />
+            Remix + publish
+          </a>
+          <span className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-xs font-bold text-primary">
+            <Download className="h-3.5 w-3.5" />
+            PDF export available
+          </span>
+        </div>
+      </section>
+
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
-        <section className="space-y-6 xl:col-span-8">
+        <section id="trip-builder-section" className="space-y-6 xl:col-span-8">
           <TripBuilder apiKey={apiKey} initialTrip={serializedTrip} groupToken={searchParams.group} initialVotes={votes} />
         </section>
 
         <aside className="space-y-4 xl:col-span-4">
-          <div className="social-card p-4">
+          <div id="trip-share-controls" className="social-card p-4">
             <h2 className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-900">
               <Share2 className="h-4 w-4 text-primary" />
               Share controls
@@ -105,7 +135,7 @@ export default async function TripPage({
             <ShareControls tripId={trip.id} />
           </div>
 
-          <div className="social-card p-4">
+          <div id="trip-social-actions" className="social-card p-4">
             <h2 className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-900">
               <Sparkles className="h-4 w-4 text-primary" />
               Social actions
