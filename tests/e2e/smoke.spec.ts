@@ -18,10 +18,11 @@ test.describe.serial("explore smoke", () => {
     await context.addCookies([createSessionCookie(seed, baseURL)]);
   });
 
-  test("home redirects to feed", async ({ page }) => {
+  test("home renders explore-first landing", async ({ page }) => {
     await page.goto("/");
-    await expect(page).toHaveURL(/\/feed$/);
-    await expect(page.getByRole("heading", { name: "Social Itinerary Feed" })).toBeVisible();
+    await expect(page).toHaveURL(/\/$/);
+    await expect(page.getByRole("heading", { name: /Turn social inspiration/i })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Enter social feed" })).toBeVisible();
   });
 
   test("feed loads and supports load more", async ({ page }) => {
