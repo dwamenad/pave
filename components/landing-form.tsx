@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Link2, MapPin, Sparkles, Wand2 } from "lucide-react";
+import { ArrowRight, Link2, MapPin, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -84,13 +84,13 @@ export function LandingForm() {
   }
 
   return (
-    <Card className="space-y-8 rounded-3xl border-slate-200 p-6 md:p-8">
+    <Card className="space-y-8 rounded-3xl border-slate-200 p-6 shadow-sm md:p-8">
       <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-4">
           <div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Build From Social Inspiration</h2>
+            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Explore from links, then build in one click</h2>
             <p className="mt-1 text-sm text-slate-500">
-              Paste links and caption context, detect location hints, then jump into place discovery.
+              Paste links and caption context, detect location hints, then jump into place discovery or go directly to create.
             </p>
           </div>
 
@@ -141,6 +141,10 @@ export function LandingForm() {
             >
               <Link2 className="mr-2 h-4 w-4" />
               Build my plan
+            </Button>
+            <Button className="rounded-xl px-4 font-bold" type="button" variant="ghost" onClick={() => router.push("/create")}>
+              Continue to create
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
