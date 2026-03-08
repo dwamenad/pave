@@ -1,5 +1,14 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { clearMobileTokens, loadMobileTokens, saveMobileTokens, type StoredMobileTokens } from "@/src/lib/secure-token-store";
+import { Platform } from "react-native";
+import type { MobileDeviceRegisterRequest } from "@pave/contracts";
+import { resolveApiBaseUrl } from "@/src/lib/api-client";
+import {
+  clearMobileTokens,
+  getOrCreateInstallationId,
+  loadMobileTokens,
+  saveMobileTokens,
+  type StoredMobileTokens
+} from "@/src/lib/secure-token-store";
 
 type MobileAuthState = {
   ready: boolean;
@@ -7,9 +16,27 @@ type MobileAuthState = {
   tokens: StoredMobileTokens | null;
   setTokens: (tokens: StoredMobileTokens) => Promise<void>;
   clearTokens: () => Promise<void>;
+  signOut: () => Promise<void>;
 };
 
 const MobileAuthContext = createContext<MobileAuthState | null>(null);
+
+async function registerCurrentDevice(tokens: StoredMobileTokens) {
+  const installationId = await getOrCreateInstallationId();
+  const payload: MobileDeviceRegisterRequest = {
+    installationId,
+    platform: Platform.OS === "ios" ? "ios" : "android"
+  };
+
+  await fetch(`${resolveApiBaseUrl()}/api/mobile/devices/register`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${tokens.accessToken}`
+    },
+    body: JSON.stringify(payload)
+  }).catch(() => null);
+}
 
 export function MobileAuthProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
@@ -28,6 +55,11 @@ export function MobileAuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!ready || !tokens) return;
+    void registerCurrentDevice(tokens);
+  }, [ready, tokens]);
+
   const setTokens = useCallback(async (nextTokens: StoredMobileTokens) => {
     await saveMobileTokens(nextTokens);
     setTokensState(nextTokens);
@@ -38,15 +70,31 @@ export function MobileAuthProvider({ children }: { children: ReactNode }) {
     setTokensState(null);
   }, []);
 
+  const signOut = useCallback(async () => {
+    const refreshToken = tokens?.refreshToken;
+    if (refreshToken) {
+      await fetch(`${resolveApiBaseUrl()}/api/mobile/auth/logout`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ refreshToken })
+      }).catch(() => null);
+    }
+
+    await clearTokens();
+  }, [clearTokens, tokens?.refreshToken]);
+
   const value = useMemo<MobileAuthState>(
     () => ({
       ready,
       signedIn: !!tokens,
       tokens,
       setTokens,
-      clearTokens
+      clearTokens,
+      signOut
     }),
-    [clearTokens, ready, setTokens, tokens]
+    [clearTokens, ready, setTokens, signOut, tokens]
   );
 
   return <MobileAuthContext.Provider value={value}>{children}</MobileAuthContext.Provider>;
