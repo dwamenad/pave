@@ -40,6 +40,10 @@ The setup script will:
 
 ## Optional keys for full functionality
 - To use Google sign-in, set `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env.local`.
+- To use native Google sign-in in the Expo app, set:
+  - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
+  - `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`
+  in `apps/mobile/.env`.
 - To use Places API features without quota/auth errors, set both maps keys in `.env.local`:
   - `GOOGLE_MAPS_API_KEY_PUBLIC`
   - `GOOGLE_MAPS_API_KEY_SERVER`

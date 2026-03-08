@@ -1,5 +1,16 @@
 import type { ExpoConfig } from "expo/config";
 
+const deepLinkBaseUrl = process.env.EXPO_PUBLIC_DEEP_LINK_BASE_URL || "https://pave.app";
+const deepLinkHost = (() => {
+  try {
+    const parsed = new URL(deepLinkBaseUrl);
+    if (parsed.protocol !== "https:") return null;
+    return parsed.hostname;
+  } catch {
+    return null;
+  }
+})();
+
 const config: ExpoConfig = {
   name: "Pave",
   slug: "pave-mobile",
@@ -12,18 +23,34 @@ const config: ExpoConfig = {
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "app.pave.mobile"
+    bundleIdentifier: "app.pave.mobile",
+    ...(deepLinkHost
+      ? {
+          associatedDomains: [`applinks:${deepLinkHost}`]
+        }
+      : {})
   },
   android: {
     package: "app.pave.mobile",
     adaptiveIcon: {
       backgroundColor: "#ffffff"
-    }
+    },
+    ...(deepLinkHost
+      ? {
+          intentFilters: [
+            {
+              action: "VIEW",
+              data: [{ scheme: "https", host: deepLinkHost, pathPrefix: "/" }],
+              category: ["BROWSABLE", "DEFAULT"]
+            }
+          ]
+        }
+      : {})
   },
   plugins: ["expo-router", "expo-secure-store"],
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:3000",
-    deepLinkBaseUrl: process.env.EXPO_PUBLIC_DEEP_LINK_BASE_URL || "https://pave.app"
+    deepLinkBaseUrl
   }
 };
 

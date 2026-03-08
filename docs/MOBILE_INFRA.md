@@ -23,6 +23,10 @@ Required for mobile auth bridge:
 - `MOBILE_ACCESS_TOKEN_TTL_MINUTES` (default `15`)
 - `MOBILE_REFRESH_TOKEN_TTL_DAYS` (default `30`)
 
+Required in `apps/mobile/.env` for native mobile app auth:
+- `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
+- `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`
+
 ## Local Development
 From repo root:
 
@@ -68,10 +72,15 @@ Replace placeholders before production:
 - Main CI runs web checks and mobile typecheck.
 - EAS profiles live in `apps/mobile/eas.json`:
   - `development`
-  - `preview`
+  - `preview` (beta channel)
   - `production`
+- Use preview channel builds for TestFlight closed-beta verification.
 
 ## Operational Notes
 - Revoke refresh tokens on logout.
 - Access tokens are statelessly verified and also session-validated against DB (`jti`, version, revocation, expiry).
 - Device records are user-scoped and installation-scoped.
+- Web APIs now accept either NextAuth cookies (web) or mobile bearer tokens for shared endpoint reuse.
+
+## QA Checklist
+- Mobile beta checklist lives in `docs/MOBILE_BETA_QA.md`.

@@ -23,6 +23,7 @@
 - Product specification: [`docs/PRD.md`](./docs/PRD.md)
 - Reliability baseline: [`docs/SLOS_AND_DASHBOARDS.md`](./docs/SLOS_AND_DASHBOARDS.md)
 - Mobile infrastructure runbook: [`docs/MOBILE_INFRA.md`](./docs/MOBILE_INFRA.md)
+- Mobile beta QA checklist: [`docs/MOBILE_BETA_QA.md`](./docs/MOBILE_BETA_QA.md)
 - Contributor onboarding: [`docs/CONTRIBUTOR_SETUP.md`](./docs/CONTRIBUTOR_SETUP.md)
 - Environment setup and local runbook: this README (`Quick Start`, `Environment`, `Developer Workflow`)
 
