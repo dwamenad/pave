@@ -23,6 +23,7 @@
 - Product specification: [`docs/PRD.md`](./docs/PRD.md)
 - Reliability baseline: [`docs/SLOS_AND_DASHBOARDS.md`](./docs/SLOS_AND_DASHBOARDS.md)
 - Mobile infrastructure runbook: [`docs/MOBILE_INFRA.md`](./docs/MOBILE_INFRA.md)
+- Contributor onboarding: [`docs/CONTRIBUTOR_SETUP.md`](./docs/CONTRIBUTOR_SETUP.md)
 - Environment setup and local runbook: this README (`Quick Start`, `Environment`, `Developer Workflow`)
 
 ## Why Pave?
@@ -110,11 +111,17 @@ Pave bridges the gap between social discovery and practical planning.
 
 ## Quick Start
 
+### Contributor bootstrap (recommended)
+
+```bash
+pnpm setup:contributor
+```
+
 ### 1) Requirements
 
 - Node.js `22.x`
 - pnpm `10.x`
-- PostgreSQL running locally
+- Docker Desktop (recommended for local Postgres)
 
 ### 2) Install + setup
 
@@ -122,6 +129,7 @@ Pave bridges the gap between social discovery and practical planning.
 pnpm install
 cp .env.example .env
 cp .env.example .env.local
+cp apps/mobile/.env.example apps/mobile/.env
 pnpm prisma:generate
 pnpm prisma:migrate
 pnpm prisma:seed
@@ -133,6 +141,12 @@ pnpm prisma:seed
 pnpm dev
 ```
 
+Run web + mobile together:
+
+```bash
+pnpm dev:all
+```
+
 Open:
 
 - `http://localhost:3000`
@@ -142,10 +156,11 @@ Open:
 ## Environment
 
 ```env
-DATABASE_URL="postgresql://<user>@127.0.0.1:5432/one_click_away?schema=public"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/one_click_away?schema=public"
 GOOGLE_MAPS_API_KEY_PUBLIC="your_referrer_restricted_maps_js_key"
 GOOGLE_MAPS_API_KEY_SERVER="your_server_places_key"
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3000"
 RATE_LIMIT_WINDOW_MS="60000"
 RATE_LIMIT_MAX_REQUESTS="60"
 UPSTASH_REDIS_REST_URL=""
@@ -155,6 +170,11 @@ DEEP_LINK_BASE_URL="http://localhost:3000"
 NEXTAUTH_SECRET="long-random-secret"
 GOOGLE_CLIENT_ID="google-oauth-client-id"
 GOOGLE_CLIENT_SECRET="google-oauth-client-secret"
+GOOGLE_IOS_CLIENT_ID=""
+GOOGLE_ANDROID_CLIENT_ID=""
+MOBILE_AUTH_JWT_SECRET="replace_with_mobile_jwt_secret"
+MOBILE_ACCESS_TOKEN_TTL_MINUTES="15"
+MOBILE_REFRESH_TOKEN_TTL_DAYS="30"
 ```
 
 Google key guidance:

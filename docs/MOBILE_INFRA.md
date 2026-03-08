@@ -27,15 +27,13 @@ Required for mobile auth bridge:
 From repo root:
 
 ```bash
-pnpm install
-pnpm prisma:generate
-pnpm dev
+pnpm setup:contributor
 ```
 
 In a second terminal:
 
 ```bash
-pnpm mobile:dev
+pnpm dev:all
 ```
 
 ## Native Auth Flow
