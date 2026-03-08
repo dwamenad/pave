@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireApiUser } from "@/lib/server/route-user";
 
-export async function POST(_: NextRequest, { params }: { params: { userId: string } }) {
-  const auth = await requireApiUser();
+export async function POST(request: NextRequest, { params }: { params: { userId: string } }) {
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   if (auth.user.id === params.userId) {
@@ -46,8 +46,8 @@ export async function POST(_: NextRequest, { params }: { params: { userId: strin
   return NextResponse.json({ blocked: true });
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { userId: string } }) {
-  const auth = await requireApiUser();
+export async function DELETE(request: NextRequest, { params }: { params: { userId: string } }) {
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   await db.block.deleteMany({
