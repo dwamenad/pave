@@ -2,6 +2,7 @@ import * as SecureStore from "expo-secure-store";
 
 const ACCESS_TOKEN_KEY = "pave.mobile.access_token";
 const REFRESH_TOKEN_KEY = "pave.mobile.refresh_token";
+const INSTALLATION_ID_KEY = "pave.mobile.installation_id";
 
 export type StoredMobileTokens = {
   accessToken: string;
@@ -30,4 +31,17 @@ export async function clearMobileTokens() {
     SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
     SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY)
   ]);
+}
+
+function generateInstallationId() {
+  return `inst_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 12)}`;
+}
+
+export async function getOrCreateInstallationId() {
+  const existing = await SecureStore.getItemAsync(INSTALLATION_ID_KEY);
+  if (existing) return existing;
+
+  const next = generateInstallationId();
+  await SecureStore.setItemAsync(INSTALLATION_ID_KEY, next);
+  return next;
 }
