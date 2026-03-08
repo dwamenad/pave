@@ -266,11 +266,46 @@ All contributor changes to model must include:
 
 ## 13) Contributor Development Setup
 
-## Local setup
+## Prerequisites
+- Node.js `22.x`
+- pnpm `10.x`
+- Docker Desktop (recommended local Postgres runtime)
+
+## Recommended bootstrap (single command)
+```bash
+pnpm setup:contributor
+```
+
+This command is the canonical contributor onboarding path and must:
+1. create `.env` and `.env.local` from `.env.example` when missing,
+2. create `apps/mobile/.env` from `apps/mobile/.env.example` when missing,
+3. start local Postgres (`docker compose up -d db`) when Docker is available,
+4. install dependencies,
+5. run Prisma generate + schema sync/migration path,
+6. run seed.
+
+## Run modes
+```bash
+pnpm dev        # web only
+pnpm mobile:dev # mobile only
+pnpm dev:all    # web + mobile
+```
+
+## Database helpers
+```bash
+pnpm db:up
+pnpm db:down
+pnpm db:logs
+```
+
+## Manual fallback setup
 ```bash
 pnpm install
+cp .env.example .env
+cp .env.example .env.local
+cp apps/mobile/.env.example apps/mobile/.env
 pnpm prisma:generate
-pnpm prisma:migrate --name <migration_name>
+pnpm prisma:migrate
 pnpm prisma:seed
 pnpm dev
 ```
@@ -278,6 +313,7 @@ pnpm dev
 ## Quality checks before PR
 ```bash
 pnpm test
+pnpm lint
 pnpm build
 ```
 
