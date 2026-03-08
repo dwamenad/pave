@@ -5,8 +5,8 @@ import { createNotification, trackEventWithActor } from "@/lib/server/events";
 import { requireApiUser } from "@/lib/server/route-user";
 import { slugify } from "@/lib/utils";
 
-export async function POST(_: NextRequest, { params }: { params: { tripId: string } }) {
-  const auth = await requireApiUser();
+export async function POST(request: NextRequest, { params }: { params: { tripId: string } }) {
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   const sourceTrip = await db.trip.findUnique({
@@ -36,10 +36,10 @@ export async function POST(_: NextRequest, { params }: { params: { tripId: strin
       placeId: sourceTrip.placeId,
       authorId: auth.user.id,
       days: {
-        create: sourceTrip.days.map((day) => ({
+        create: sourceTrip.days.map((day: (typeof sourceTrip.days)[number]) => ({
           dayIndex: day.dayIndex,
           items: {
-            create: day.items.map((item) => ({
+            create: day.items.map((item: (typeof day.items)[number]) => ({
               placeId: item.placeId,
               name: item.name,
               lat: item.lat,
