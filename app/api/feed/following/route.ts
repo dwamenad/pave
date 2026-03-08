@@ -5,7 +5,7 @@ import { getOrCreateSessionToken } from "@/lib/server/session";
 import { getFollowingFeed } from "@/lib/server/social-service";
 
 export async function GET(request: NextRequest) {
-  const auth = await requireApiUser();
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   const cursor = request.nextUrl.searchParams.get("cursor") || undefined;
