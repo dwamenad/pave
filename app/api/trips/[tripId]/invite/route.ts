@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 
-export async function POST(_: NextRequest, { params }: { params: { tripId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { tripId: string } }) {
   const trip = await db.trip.findUnique({ where: { id: params.tripId } });
   if (!trip) {
     return NextResponse.json({ error: "Trip not found" }, { status: 404 });
