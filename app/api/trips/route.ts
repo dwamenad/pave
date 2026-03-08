@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateTripPlan } from "@/lib/server/trip-service";
-import { getCurrentUser } from "@/lib/auth";
+import { getApiActor } from "@/lib/server/route-user";
 
 const createTripSchema = z.object({
   title: z.string().min(2),
@@ -23,7 +23,8 @@ const createTripSchema = z.object({
 
 export async function POST(request: NextRequest) {
   const payload = createTripSchema.parse(await request.json());
-  const user = await getCurrentUser();
+  const actor = await getApiActor(request);
+  const user = actor?.user ?? null;
   const trip = await generateTripPlan({
     ...payload,
     authorId: user?.id
