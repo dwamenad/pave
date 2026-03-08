@@ -30,7 +30,7 @@ function mapComment(comment: {
   };
 }
 
-export async function GET(_: NextRequest, { params }: { params: { postId: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { postId: string } }) {
   const comments = await db.comment.findMany({
     where: {
       postId: params.postId,
@@ -59,7 +59,7 @@ export async function GET(_: NextRequest, { params }: { params: { postId: string
 }
 
 export async function POST(request: NextRequest, { params }: { params: { postId: string } }) {
-  const auth = await requireApiUser();
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   const body = await request.json();
