@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { getCurrentUser } from "@/lib/auth";
 import { isTrackedEventName } from "@/lib/event-taxonomy";
+import { getApiActor } from "@/lib/server/route-user";
 import { getOrCreateAnonymousSession } from "@/lib/server/session";
 
 type EventInput = {
@@ -31,7 +31,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Maximum batch size is 100 events" }, { status: 400 });
   }
 
-  const user = await getCurrentUser();
+  const actor = await getApiActor(request);
+  const user = actor?.user ?? null;
   const anonSession = user ? null : await getOrCreateAnonymousSession();
 
   const rows = rawEvents
