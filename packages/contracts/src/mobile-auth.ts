@@ -21,8 +21,18 @@ export type MobileRefreshRequest = {
   refreshToken: string;
 };
 
+export type MobileRefreshResponse = {
+  accessToken: string;
+  refreshToken: string;
+  expiresInSeconds: number;
+};
+
 export type MobileLogoutRequest = {
   refreshToken: string;
+};
+
+export type MobileLogoutResponse = {
+  ok: true;
 };
 
 export type MobileMeResponse = {
