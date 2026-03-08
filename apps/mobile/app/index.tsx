@@ -13,5 +13,5 @@ export default function IndexRoute() {
     );
   }
 
-  return <Redirect href={auth.signedIn ? "/(tabs)/home" : "/sign-in"} />;
+  return <Redirect href={auth.signedIn ? "/(tabs)/feed" : "/sign-in"} />;
 }
