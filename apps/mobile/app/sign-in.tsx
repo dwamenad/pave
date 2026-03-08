@@ -5,6 +5,7 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import { useMobileAuth } from "@/src/auth/mobile-auth-context";
 import { resolveApiBaseUrl } from "@/src/lib/api-client";
+import { setMobileTelemetryUser } from "@/src/lib/mobile-telemetry";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -72,6 +73,7 @@ export default function SignInScreen() {
             accessToken: parsed.accessToken,
             refreshToken: parsed.refreshToken
           });
+          setMobileTelemetryUser(parsed.user);
         }
       } catch (err) {
         if (!cancelled) {

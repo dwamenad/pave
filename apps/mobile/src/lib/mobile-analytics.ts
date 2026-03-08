@@ -1,5 +1,6 @@
 import { getOrCreateInstallationId } from "@/src/lib/secure-token-store";
 import type { createMobileApiClient } from "@/src/lib/api-client";
+import { captureMobileException } from "@/src/lib/mobile-telemetry";
 
 type MobileTrackedEventName =
   | "view_feed"
@@ -42,6 +43,7 @@ export async function trackMobileError(
   context?: Record<string, unknown>
 ) {
   const message = error instanceof Error ? error.message : String(error || "Unknown mobile error");
+  captureMobileException(error, context);
   await trackMobileEvent(api, "mobile_error", {
     message: message.slice(0, 500),
     ...context

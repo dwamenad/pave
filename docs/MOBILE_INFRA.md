@@ -26,6 +26,13 @@ Required for mobile auth bridge:
 Required in `apps/mobile/.env` for native mobile app auth:
 - `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
 - `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`
+- `EXPO_PUBLIC_SENTRY_DSN` (optional locally, required for beta crash telemetry)
+
+Required for Sentry release/source map upload during preview and production builds:
+- `SENTRY_AUTH_TOKEN`
+- `SENTRY_ORG`
+- `SENTRY_PROJECT`
+- `SENTRY_URL` (optional, defaults to `https://sentry.io/`)
 
 ## Local Development
 From repo root:
@@ -67,6 +74,18 @@ Association files are in `public/.well-known`:
 Replace placeholders before production:
 - iOS Team ID
 - Android release SHA-256 cert fingerprint
+
+## Location and Nearby
+- Nearby mobile screens start with a Times Square fallback until foreground location access is granted.
+- Expo config now includes an `expo-location` permission string. If you change the nearby experience, keep the copy aligned with actual usage.
+- Denied location permission must keep the app usable with fallback nearby results instead of blocking the screen.
+
+## Telemetry
+- Mobile crash and runtime error telemetry is wired through `@sentry/react-native`.
+- Set `EXPO_PUBLIC_SENTRY_DSN` in `apps/mobile/.env` for preview/TestFlight builds.
+- Build-time source map upload uses the Expo Sentry plugin in `apps/mobile/app.config.ts`.
+- For local export/build verification, copy `apps/mobile/.env.sentry-build-plugin.example` to `apps/mobile/.env.sentry-build-plugin` and fill in your Sentry values.
+- In EAS, set `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, and `SENTRY_PROJECT` as build environment variables for `preview` and `production`.
 
 ## CI / Build
 - Main CI runs web checks and mobile typecheck.

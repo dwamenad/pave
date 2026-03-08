@@ -1,6 +1,7 @@
 /* eslint-disable jsx-a11y/alt-text */
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
   Pressable,
   ScrollView,
@@ -9,9 +10,11 @@ import {
   View
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { useQuery } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/src/components/ui-states";
+import { trackMobileError } from "@/src/lib/mobile-analytics";
 import { useMobileApiClient } from "@/src/lib/use-mobile-api-client";
 
 type NearbyPlace = {
@@ -39,6 +42,7 @@ const PRIMARY = "#13b6ec";
 const DEFAULT_COORDS = { lat: 40.758, lng: -73.9855 };
 const MAP_IMAGE =
   "https://lh3.googleusercontent.com/aida-public/AB6AXuBV5VdkoWqQXVnwR5b_u-5CM5HgOeSuEL4A3RPrulQElwB-dXNgNISdROWZBh0e0UvaFxOf_lItWmAFppq5BQICFTy9SpAhjFHOiT0RUfKwgBalOyswpxLcOQR4ztKxRwMW0KSS4ty0fdx-J6E1dW1o_1mmnRhETbyQTFbEk8vXGKoyD6LxpnCIutze_6AbeIMQuYMTeg_1rRmfCqVa8-IglOtS4LeRg68FnAEkT3vDmrzFQGtoL7XsUoN2pkUBA_17A6TJX98IwPo";
+const DEFAULT_LOCATION_LABEL = "Times Square, New York";
 
 function formatPrice(priceLevel?: number) {
   if (!Number.isFinite(priceLevel)) return "$$";
@@ -54,12 +58,76 @@ export default function HomeScreen() {
   const router = useRouter();
   const [category, setCategory] = useState<NearbyCategory>("eat");
   const [query, setQuery] = useState("");
+  const [coords, setCoords] = useState(DEFAULT_COORDS);
+  const [locationLabel, setLocationLabel] = useState(DEFAULT_LOCATION_LABEL);
+  const [locationMessage, setLocationMessage] = useState(
+    "Using demo nearby results until location access is granted."
+  );
+  const [locating, setLocating] = useState(false);
+
+  const resolveDeviceLocation = useCallback(
+    async (userInitiated: boolean) => {
+      setLocating(true);
+      try {
+        const permission = await Location.requestForegroundPermissionsAsync();
+        if (permission.status !== "granted") {
+          setLocationLabel(DEFAULT_LOCATION_LABEL);
+          setLocationMessage("Location access is off. Showing demo results near Times Square.");
+          return;
+        }
+
+        const fallbackPosition = await Location.getLastKnownPositionAsync({
+          maxAge: 600_000,
+          requiredAccuracy: 500
+        });
+        const freshPosition =
+          userInitiated || !fallbackPosition
+            ? await Location.getCurrentPositionAsync({
+                accuracy: Location.LocationAccuracy.Balanced
+              })
+            : fallbackPosition;
+
+        const nextCoords = {
+          lat: freshPosition.coords.latitude,
+          lng: freshPosition.coords.longitude
+        };
+
+        setCoords(nextCoords);
+
+        const [geo] = await Location.reverseGeocodeAsync({
+          latitude: nextCoords.lat,
+          longitude: nextCoords.lng
+        }).catch(() => []);
+
+        const label = [geo?.city || geo?.district || geo?.subregion, geo?.region || geo?.country]
+          .filter(Boolean)
+          .join(", ");
+
+        setLocationLabel(label || "Current location");
+        setLocationMessage("Showing live nearby results from your device.");
+      } catch (error) {
+        setLocationLabel(DEFAULT_LOCATION_LABEL);
+        setLocationMessage("We could not refresh your location. Showing demo nearby results.");
+        await trackMobileError(api, error, {
+          screen: "nearby",
+          action: "resolve_location"
+        });
+      } finally {
+        setLocating(false);
+      }
+    },
+    [api]
+  );
+
+  useEffect(() => {
+    void resolveDeviceLocation(false);
+  }, [resolveDeviceLocation]);
 
   const nearbyQuery = useQuery({
-    queryKey: ["mobile-nearby", DEFAULT_COORDS.lat, DEFAULT_COORDS.lng],
+    queryKey: ["mobile-nearby", coords.lat, coords.lng],
     queryFn: () =>
       api.get<NearbyResponse>(
-        `/api/nearby?lat=${DEFAULT_COORDS.lat}&lng=${DEFAULT_COORDS.lng}`,
+        `/api/nearby?lat=${coords.lat}&lng=${coords.lng}`,
         { retries: 0 }
       )
   });
@@ -143,6 +211,15 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      <View style={{ paddingHorizontal: 14, paddingTop: 8 }}>
+        <Text style={{ fontSize: 12, fontWeight: "800", color: "#0f172a" }}>
+          Showing spots near {locationLabel}
+        </Text>
+        <Text style={{ marginTop: 2, fontSize: 12, color: "#64748b", lineHeight: 18 }}>
+          {locationMessage}
+        </Text>
+      </View>
+
       <View style={{ position: "absolute", top: 136, right: 14, gap: 10 }}>
         <View style={{ borderRadius: 10, overflow: "hidden", borderWidth: 1, borderColor: "#e2e8f0" }}>
           <Pressable style={{ width: 42, height: 42, backgroundColor: "#fff", alignItems: "center", justifyContent: "center", borderBottomWidth: 1, borderBottomColor: "#f1f5f9" }}>
@@ -156,10 +233,21 @@ export default function HomeScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Use current location"
-          onPress={() => nearbyQuery.refetch()}
-          style={{ width: 42, height: 42, borderRadius: 10, backgroundColor: PRIMARY, alignItems: "center", justifyContent: "center" }}
+          onPress={() => {
+            void resolveDeviceLocation(true);
+          }}
+          disabled={locating}
+          style={{
+            width: 42,
+            height: 42,
+            borderRadius: 10,
+            backgroundColor: PRIMARY,
+            alignItems: "center",
+            justifyContent: "center",
+            opacity: locating ? 0.7 : 1
+          }}
         >
-          <Ionicons name="locate" size={18} color="#fff" />
+          {locating ? <ActivityIndicator color="#fff" size="small" /> : <Ionicons name="locate" size={18} color="#fff" />}
         </Pressable>
       </View>
 

@@ -1,6 +1,9 @@
 import type { ExpoConfig } from "expo/config";
 
 const deepLinkBaseUrl = process.env.EXPO_PUBLIC_DEEP_LINK_BASE_URL || "https://pave.app";
+const sentryOrg = process.env.SENTRY_ORG;
+const sentryProject = process.env.SENTRY_PROJECT;
+const sentryUrl = process.env.SENTRY_URL || "https://sentry.io/";
 const deepLinkHost = (() => {
   try {
     const parsed = new URL(deepLinkBaseUrl);
@@ -47,10 +50,32 @@ const config: ExpoConfig = {
         }
       : {})
   },
-  plugins: ["expo-router", "expo-secure-store"],
+  plugins: [
+    "expo-router",
+    "expo-secure-store",
+    [
+      "@sentry/react-native/expo",
+      {
+        organization: sentryOrg,
+        project: sentryProject,
+        url: sentryUrl
+      }
+    ],
+    [
+      "expo-location",
+      {
+        locationWhenInUsePermission:
+          "Pave uses your location to show nearby places, coffee, and things to do."
+      }
+    ]
+  ],
   extra: {
     apiBaseUrl: process.env.EXPO_PUBLIC_API_BASE_URL || "http://localhost:3000",
-    deepLinkBaseUrl
+    deepLinkBaseUrl,
+    sentry: {
+      orgConfigured: Boolean(sentryOrg),
+      projectConfigured: Boolean(sentryProject)
+    }
   }
 };
 

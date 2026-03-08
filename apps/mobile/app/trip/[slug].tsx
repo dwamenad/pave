@@ -7,12 +7,17 @@ import {
   Text,
   View
 } from "react-native";
+import { Buffer } from "buffer";
 import { Ionicons } from "@expo/vector-icons";
+import * as FileSystem from "expo-file-system";
+import * as Sharing from "expo-sharing";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/src/components/ui-states";
+import { resolveApiBaseUrl } from "@/src/lib/api-client";
 import { useMobileApiClient } from "@/src/lib/use-mobile-api-client";
-import { trackMobileEvent } from "@/src/lib/mobile-analytics";
+import { loadMobileTokens } from "@/src/lib/secure-token-store";
+import { trackMobileError, trackMobileEvent } from "@/src/lib/mobile-analytics";
 
 type TripBySlugResponse = {
   trip: {
@@ -106,12 +111,68 @@ export default function TripDetailScreen() {
   });
 
   const exportMutation = useMutation({
-    mutationFn: () => api.post<{ url: string }>(`/api/trips/${tripQuery.data?.trip.id}/share`, { channel: "mobile_pdf" }),
-    onSuccess: async (payload) => {
-      await Share.share({
-        message: `Open this trip link to export PDF: ${payload.url}`,
-        url: payload.url
+    mutationFn: async () => {
+      const tripId = tripQuery.data?.trip.id;
+      if (!tripId) throw new Error("Trip is unavailable");
+
+      await api.get("/api/mobile/me", { retries: 0 });
+
+      const latestTokens = await loadMobileTokens();
+      if (!latestTokens?.accessToken) {
+        throw new Error("Your session expired. Sign in again to export this trip.");
+      }
+
+      if (!FileSystem.cacheDirectory) {
+        throw new Error("Local file storage is unavailable on this device.");
+      }
+
+      const response = await fetch(`${resolveApiBaseUrl()}/api/trips/${tripId}/export/pdf`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${latestTokens.accessToken}`
+        }
       });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Failed to export PDF");
+      }
+
+      const bytes = await response.arrayBuffer();
+      const fileUri = `${FileSystem.cacheDirectory}trip-${tripId}.pdf`;
+      await FileSystem.writeAsStringAsync(fileUri, Buffer.from(bytes).toString("base64"), {
+        encoding: FileSystem.EncodingType.Base64
+      });
+
+      return { fileUri, tripId };
+    },
+    onSuccess: async ({ fileUri, tripId }) => {
+      await trackMobileEvent(api, "share_trip", {
+        tripId,
+        channel: "mobile_pdf"
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: "application/pdf",
+          UTI: "com.adobe.pdf",
+          dialogTitle: "Share trip PDF"
+        });
+        return;
+      }
+
+      await Share.share({
+        url: fileUri,
+        message: "Trip PDF ready to share."
+      });
+    },
+    onError: async (error) => {
+      await trackMobileError(api, error, {
+        screen: "trip_detail",
+        action: "export_pdf",
+        tripId: tripQuery.data?.trip.id
+      });
+      Alert.alert("PDF export failed", "Try again in a moment.");
     }
   });
 
