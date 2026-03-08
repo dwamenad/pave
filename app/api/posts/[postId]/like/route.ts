@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { trackFeedAction } from "@/lib/server/events";
 import { requireApiUser } from "@/lib/server/route-user";
 
-export async function POST(_: NextRequest, { params }: { params: { postId: string } }) {
-  const auth = await requireApiUser();
+export async function POST(request: NextRequest, { params }: { params: { postId: string } }) {
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   const existing = await db.postLike.findUnique({
