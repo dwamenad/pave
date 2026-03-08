@@ -6,7 +6,7 @@ import { containsProfanity, sanitizeToTags } from "@/lib/server/moderation";
 import { fetchMetadataForLinks } from "@/lib/server/link-metadata";
 
 export async function POST(request: NextRequest) {
-  const auth = await requireApiUser();
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   const body = await request.json();
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
 
   if (followers.length) {
     await db.notification.createMany({
-      data: followers.map((row) => ({
+      data: followers.map((row: { followerId: string }) => ({
         userId: row.followerId,
         type: "NEW_POST",
         entityId: post.id,
