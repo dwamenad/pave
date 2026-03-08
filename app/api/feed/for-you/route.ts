@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
 import { trackEventWithActor, trackFeedImpressions } from "@/lib/server/events";
+import { getApiActor } from "@/lib/server/route-user";
 import { getOrCreateSessionToken } from "@/lib/server/session";
 import { getForYouFeed } from "@/lib/server/social-service";
 
 export async function GET(request: NextRequest) {
   const cursor = request.nextUrl.searchParams.get("cursor") || undefined;
-  const user = await getCurrentUser();
+  const actor = await getApiActor(request);
+  const user = actor?.user ?? null;
   const sessionId = await getOrCreateSessionToken();
   const feed = await getForYouFeed(user?.id, cursor);
 
