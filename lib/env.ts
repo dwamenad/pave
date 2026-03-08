@@ -15,7 +15,12 @@ const envSchema = z.object({
   DEEP_LINK_BASE_URL: z.string().url().default("http://localhost:3000"),
   NEXTAUTH_SECRET: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
-  GOOGLE_CLIENT_SECRET: z.string().optional()
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  GOOGLE_IOS_CLIENT_ID: z.string().optional(),
+  GOOGLE_ANDROID_CLIENT_ID: z.string().optional(),
+  MOBILE_AUTH_JWT_SECRET: z.string().optional(),
+  MOBILE_ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().default(15),
+  MOBILE_REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30)
 });
 
 export const env = envSchema.parse({
@@ -31,5 +36,10 @@ export const env = envSchema.parse({
   DEEP_LINK_BASE_URL: process.env.DEEP_LINK_BASE_URL || process.env.NEXT_PUBLIC_APP_URL,
   NEXTAUTH_SECRET: process.env.NEXTAUTH_SECRET,
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  GOOGLE_IOS_CLIENT_ID: process.env.GOOGLE_IOS_CLIENT_ID,
+  GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID,
+  MOBILE_AUTH_JWT_SECRET: process.env.MOBILE_AUTH_JWT_SECRET,
+  MOBILE_ACCESS_TOKEN_TTL_MINUTES: process.env.MOBILE_ACCESS_TOKEN_TTL_MINUTES,
+  MOBILE_REFRESH_TOKEN_TTL_DAYS: process.env.MOBILE_REFRESH_TOKEN_TTL_DAYS
 });

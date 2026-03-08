@@ -3,11 +3,12 @@
     "apps": [],
     "details": [
       {
-        "appID": "REPLACE_WITH_TEAM_ID.app.pave.web",
+        "appID": "REPLACE_WITH_TEAM_ID.app.pave.mobile",
         "paths": [
           "/trip/*",
           "/post/*",
-          "/feed*"
+          "/feed*",
+          "/create*"
         ]
       }
     ]

@@ -77,6 +77,9 @@ model User {
   feedImpressions FeedImpression[]
   feedActions    FeedAction[]
   shareAttributions ShareAttribution[] @relation("ShareInviter")
+  mobileSessions MobileSession[]
+  mobileRefreshTokens MobileRefreshToken[]
+  devices       Device[]
 }
 
 model Account {
@@ -108,6 +111,66 @@ model Session {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+model MobileSession {
+  id                  String   @id @default(cuid())
+  userId              String
+  deviceId            String?
+  accessTokenJti      String   @unique
+  refreshTokenVersion Int      @default(1)
+  createdAt           DateTime @default(now())
+  expiresAt           DateTime
+  revokedAt           DateTime?
+  lastSeenAt          DateTime @default(now())
+
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  device        Device?              @relation(fields: [deviceId], references: [id], onDelete: SetNull)
+  refreshTokens MobileRefreshToken[]
+
+  @@index([userId, createdAt])
+  @@index([deviceId, createdAt])
+  @@index([expiresAt])
+}
+
+model MobileRefreshToken {
+  id            String   @id @default(cuid())
+  sessionId     String
+  userId        String
+  tokenHash     String   @unique
+  expiresAt     DateTime
+  revokedAt     DateTime?
+  rotatedFromId String?
+  createdAt     DateTime @default(now())
+
+  session     MobileSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rotatedFrom MobileRefreshToken?  @relation("MobileRefreshRotation", fields: [rotatedFromId], references: [id], onDelete: SetNull)
+  rotatedInto MobileRefreshToken[] @relation("MobileRefreshRotation")
+
+  @@index([sessionId, createdAt])
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+}
+
+model Device {
+  id             String   @id @default(cuid())
+  userId         String
+  installationId String
+  platform       String
+  appVersion     String?
+  deviceName     String?
+  pushToken      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  lastSeenAt     DateTime @default(now())
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sessions MobileSession[]
+
+  @@unique([userId, installationId])
+  @@index([userId, updatedAt])
+  @@index([pushToken])
 }
 
 model VerificationToken {
