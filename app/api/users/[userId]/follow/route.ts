@@ -3,8 +3,8 @@ import { db } from "@/lib/db";
 import { createNotification, trackEvent } from "@/lib/server/events";
 import { requireApiUser } from "@/lib/server/route-user";
 
-export async function POST(_: NextRequest, { params }: { params: { userId: string } }) {
-  const auth = await requireApiUser();
+export async function POST(request: NextRequest, { params }: { params: { userId: string } }) {
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   if (auth.user.id === params.userId) {
@@ -69,8 +69,8 @@ export async function POST(_: NextRequest, { params }: { params: { userId: strin
   return NextResponse.json({ following: true });
 }
 
-export async function DELETE(_: NextRequest, { params }: { params: { userId: string } }) {
-  const auth = await requireApiUser();
+export async function DELETE(request: NextRequest, { params }: { params: { userId: string } }) {
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   await db.follow.deleteMany({
