@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { requireApiUser } from "@/lib/server/route-user";
 
 export async function POST(request: NextRequest) {
-  const auth = await requireApiUser();
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   const body = await request.json();
