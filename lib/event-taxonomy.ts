@@ -6,7 +6,8 @@ export const TRACKED_EVENT_NAMES = [
   "publish_post",
   "share_trip",
   "comment_post",
-  "follow_user"
+  "follow_user",
+  "mobile_error"
 ] as const;
 
 export type TrackedEventName = (typeof TRACKED_EVENT_NAMES)[number];
@@ -16,4 +17,3 @@ const TRACKED_EVENT_SET = new Set<string>(TRACKED_EVENT_NAMES);
 export function isTrackedEventName(name: string) {
   return TRACKED_EVENT_SET.has(name.trim().toLowerCase());
 }
-
