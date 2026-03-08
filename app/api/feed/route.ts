@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCurrentUser } from "@/lib/auth";
 import { trackEventWithActor, trackFeedImpressions } from "@/lib/server/events";
+import { getApiActor } from "@/lib/server/route-user";
 import { getOrCreateSessionToken } from "@/lib/server/session";
 import { getFeed } from "@/lib/server/social-service";
 import type { FeedSource } from "@/lib/types";
@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
     requestedSource === "FOLLOWING" || requestedSource === "TRENDING"
       ? requestedSource
       : "FOR_YOU";
-  const user = await getCurrentUser();
+  const actor = await getApiActor(request);
+  const user = actor?.user ?? null;
   const sessionId = await getOrCreateSessionToken();
   const feed = await getFeed({ cursor, source, userId: user?.id });
 
