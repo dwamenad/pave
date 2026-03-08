@@ -2,8 +2,8 @@ import { NextRequest } from "next/server";
 import { buildTripPdfBytes, createExportRecord, markExportFailed, markExportSuccess } from "@/lib/server/export-service";
 import { requireApiUser } from "@/lib/server/route-user";
 
-export async function POST(_: NextRequest, { params }: { params: { tripId: string } }) {
-  const auth = await requireApiUser();
+export async function POST(request: NextRequest, { params }: { params: { tripId: string } }) {
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   const exportRecord = await createExportRecord({
