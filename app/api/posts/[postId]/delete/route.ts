@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { requireApiUser } from "@/lib/server/route-user";
 
-export async function POST(_: NextRequest, { params }: { params: { postId: string } }) {
-  const auth = await requireApiUser();
+export async function POST(request: NextRequest, { params }: { params: { postId: string } }) {
+  const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
 
   const post = await db.post.findUnique({ where: { id: params.postId } });
