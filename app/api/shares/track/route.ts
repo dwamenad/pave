@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
-import { getCurrentUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { trackEventWithActor } from "@/lib/server/events";
+import { getApiActor } from "@/lib/server/route-user";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
-  const user = await getCurrentUser();
+  const actor = await getApiActor(request);
+  const user = actor?.user ?? null;
 
   const channel = typeof body.channel === "string" ? body.channel.slice(0, 40) : "direct";
   const token = typeof body.token === "string" && body.token.trim() ? body.token.trim() : nanoid(12);
