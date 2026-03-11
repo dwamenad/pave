@@ -1,0 +1,60 @@
+<svg width="1400" height="720" viewBox="0 0 1400 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="archBg" x1="24" y1="24" x2="1376" y2="696" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0B1220"/>
+      <stop offset="1" stop-color="#13283A"/>
+    </linearGradient>
+    <filter id="archShadow" x="0" y="0" width="1400" height="720" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#020617" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <rect x="20" y="20" width="1360" height="680" rx="32" fill="url(#archBg)"/>
+  <text x="70" y="92" fill="#67E8F9" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="800" letter-spacing="2">ARCHITECTURE SNAPSHOT</text>
+  <text x="70" y="138" fill="#FFFFFF" font-size="36" font-family="Inter, Arial, sans-serif" font-weight="800">One product, two runtimes, one shared core</text>
+  <text x="70" y="174" fill="#94A3B8" font-size="20" font-family="Inter, Arial, sans-serif">Web and mobile diverge at the client edge, then converge through shared contracts and server logic.</text>
+
+  <g filter="url(#archShadow)">
+    <rect x="108" y="238" width="220" height="96" rx="22" fill="#1E293B" stroke="#334155"/>
+    <text x="176" y="292" fill="#FFFFFF" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Web app</text>
+
+    <rect x="372" y="238" width="220" height="96" rx="22" fill="#1E293B" stroke="#334155"/>
+    <text x="425" y="292" fill="#FFFFFF" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Mobile app</text>
+
+    <rect x="636" y="220" width="620" height="132" rx="28" fill="#0EA5E9" fill-opacity="0.12" stroke="#38BDF8" stroke-width="2"/>
+    <text x="680" y="274" fill="#FFFFFF" font-size="28" font-family="Inter, Arial, sans-serif" font-weight="800">Shared API layer + route actor resolution</text>
+    <text x="680" y="306" fill="#BFDBFE" font-size="16" font-family="Inter, Arial, sans-serif">Cookie sessions for web, bearer auth for mobile, shared contracts for payloads.</text>
+
+    <path d="M328 286H372" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+    <path d="M592 286H636" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+
+    <rect x="108" y="406" width="274" height="118" rx="24" fill="#1E293B" stroke="#334155"/>
+    <text x="144" y="454" fill="#FFFFFF" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Planner services</text>
+    <text x="144" y="486" fill="#94A3B8" font-size="16" font-family="Inter, Arial, sans-serif">Trip creation, accepted drafts, map-aware itinerary logic.</text>
+
+    <rect x="414" y="406" width="274" height="118" rx="24" fill="#1E293B" stroke="#334155"/>
+    <text x="450" y="454" fill="#FFFFFF" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Social services</text>
+    <text x="450" y="486" fill="#94A3B8" font-size="16" font-family="Inter, Arial, sans-serif">Feed DTOs, comments, profiles, saves, remix, reports.</text>
+
+    <rect x="720" y="406" width="274" height="118" rx="24" fill="#1E293B" stroke="#334155"/>
+    <text x="756" y="454" fill="#FFFFFF" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Advisory AI</text>
+    <text x="756" y="486" fill="#94A3B8" font-size="16" font-family="Inter, Arial, sans-serif">Responses API, strict schema, read-only tools, file search.</text>
+
+    <rect x="1026" y="406" width="274" height="118" rx="24" fill="#1E293B" stroke="#334155"/>
+    <text x="1062" y="454" fill="#FFFFFF" font-size="24" font-family="Inter, Arial, sans-serif" font-weight="800">Ops + safety</text>
+    <text x="1062" y="486" fill="#94A3B8" font-size="16" font-family="Inter, Arial, sans-serif">Events, notifications, exports, moderation, rate limiting.</text>
+
+    <path d="M245 334V386" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+    <path d="M551 334V386" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+    <path d="M857 352V386" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+    <path d="M1163 352V386" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+
+    <rect x="278" y="572" width="824" height="88" rx="28" fill="#0F172A" stroke="#38BDF8" stroke-width="2"/>
+    <text x="530" y="622" fill="#FFFFFF" font-size="30" font-family="Inter, Arial, sans-serif" font-weight="800">Prisma + PostgreSQL shared core</text>
+    <text x="462" y="648" fill="#94A3B8" font-size="16" font-family="Inter, Arial, sans-serif">Identity, planner, social graph, exports, events, mobile sessions, place caching.</text>
+
+    <path d="M245 524V572" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+    <path d="M551 524V572" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+    <path d="M857 524V572" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+    <path d="M1163 524V572" stroke="#67E8F9" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+  </g>
+</svg>

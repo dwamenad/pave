@@ -1,0 +1,78 @@
+<svg width="1400" height="720" viewBox="0 0 1400 720" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="surfacesBg" x1="34" y1="34" x2="1366" y2="686" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F172A"/>
+      <stop offset="0.55" stop-color="#13243A"/>
+      <stop offset="1" stop-color="#123B4A"/>
+    </linearGradient>
+    <filter id="surfaceShadow" x="0" y="0" width="1400" height="720" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="16" stdDeviation="22" flood-color="#020617" flood-opacity="0.24"/>
+    </filter>
+  </defs>
+  <rect x="20" y="20" width="1360" height="680" rx="32" fill="url(#surfacesBg)"/>
+  <text x="70" y="92" fill="#67E8F9" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="800" letter-spacing="2">PRODUCT SURFACES</text>
+  <text x="70" y="138" fill="#FFFFFF" font-size="36" font-family="Inter, Arial, sans-serif" font-weight="800">The repo is broad, but the product surfaces stay coherent</text>
+  <text x="70" y="174" fill="#94A3B8" font-size="20" font-family="Inter, Arial, sans-serif">Create, feed, planner, and mobile are different views into the same system.</text>
+
+  <g filter="url(#surfaceShadow)">
+    <rect x="70" y="222" width="610" height="200" rx="24" fill="#F8FAFC"/>
+    <rect x="70.5" y="222.5" width="609" height="199" rx="23.5" stroke="#DCE7F0"/>
+    <rect x="102" y="254" width="160" height="14" rx="7" fill="#13B6EC" fill-opacity="0.22"/>
+    <text x="102" y="300" fill="#0F172A" font-size="28" font-family="Inter, Arial, sans-serif" font-weight="800">Create flow</text>
+    <text x="102" y="332" fill="#475569" font-size="16" font-family="Inter, Arial, sans-serif">Social parse, destination resolve, AI draft review, fallback, and publish.</text>
+    <rect x="102" y="360" width="136" height="30" rx="15" fill="#DBEAFE"/>
+    <text x="124" y="380" fill="#1D4ED8" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">ADVISORY AI</text>
+    <rect x="256" y="360" width="182" height="30" rx="15" fill="#DCFCE7"/>
+    <text x="276" y="380" fill="#166534" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">DETERMINISTIC FALLBACK</text>
+    <rect x="484" y="252" width="152" height="136" rx="22" fill="#FFFFFF"/>
+    <rect x="500" y="272" width="120" height="12" rx="6" fill="#CBD5E1"/>
+    <rect x="500" y="300" width="96" height="54" rx="14" fill="#0EA5E9" fill-opacity="0.14"/>
+    <rect x="606" y="300" width="14" height="54" rx="7" fill="#14B8A6" fill-opacity="0.3"/>
+  </g>
+
+  <g filter="url(#surfaceShadow)">
+    <rect x="720" y="222" width="610" height="200" rx="24" fill="#F8FAFC"/>
+    <rect x="720.5" y="222.5" width="609" height="199" rx="23.5" stroke="#DCE7F0"/>
+    <text x="752" y="300" fill="#0F172A" font-size="28" font-family="Inter, Arial, sans-serif" font-weight="800">Feed + profiles</text>
+    <text x="752" y="332" fill="#475569" font-size="16" font-family="Inter, Arial, sans-serif">Social objects with saves, follows, comments, reporting, and remix lineage.</text>
+    <rect x="752" y="360" width="108" height="30" rx="15" fill="#F3E8FF"/>
+    <text x="776" y="380" fill="#7E22CE" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">REMIX</text>
+    <rect x="878" y="360" width="108" height="30" rx="15" fill="#FEF3C7"/>
+    <text x="902" y="380" fill="#B45309" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">REPORTS</text>
+    <rect x="1126" y="248" width="170" height="144" rx="22" fill="#FFFFFF"/>
+    <rect x="1146" y="270" width="130" height="16" rx="8" fill="#E2E8F0"/>
+    <rect x="1146" y="302" width="64" height="64" rx="18" fill="#0EA5E9" fill-opacity="0.16"/>
+    <rect x="1220" y="302" width="56" height="16" rx="8" fill="#CBD5E1"/>
+    <rect x="1220" y="328" width="56" height="16" rx="8" fill="#CBD5E1"/>
+  </g>
+
+  <g filter="url(#surfaceShadow)">
+    <rect x="70" y="462" width="610" height="180" rx="24" fill="#F8FAFC"/>
+    <rect x="70.5" y="462.5" width="609" height="179" rx="23.5" stroke="#DCE7F0"/>
+    <text x="102" y="536" fill="#0F172A" font-size="28" font-family="Inter, Arial, sans-serif" font-weight="800">Trip builder</text>
+    <text x="102" y="566" fill="#475569" font-size="16" font-family="Inter, Arial, sans-serif">Editable itinerary, group voting, PDF export, sharing, and map-aware planning.</text>
+    <rect x="102" y="592" width="98" height="28" rx="14" fill="#DBEAFE"/>
+    <text x="124" y="610" fill="#1D4ED8" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">EXPORT</text>
+    <rect x="216" y="592" width="110" height="28" rx="14" fill="#CCFBF1"/>
+    <text x="238" y="610" fill="#0F766E" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">VOTING</text>
+    <rect x="500" y="500" width="136" height="104" rx="20" fill="#FFFFFF"/>
+    <rect x="518" y="520" width="100" height="14" rx="7" fill="#CBD5E1"/>
+    <rect x="518" y="548" width="100" height="12" rx="6" fill="#E2E8F0"/>
+    <rect x="518" y="572" width="72" height="12" rx="6" fill="#E2E8F0"/>
+  </g>
+
+  <g filter="url(#surfaceShadow)">
+    <rect x="720" y="462" width="610" height="180" rx="24" fill="#F8FAFC"/>
+    <rect x="720.5" y="462.5" width="609" height="179" rx="23.5" stroke="#DCE7F0"/>
+    <text x="752" y="536" fill="#0F172A" font-size="28" font-family="Inter, Arial, sans-serif" font-weight="800">Mobile beta</text>
+    <text x="752" y="566" fill="#475569" font-size="16" font-family="Inter, Arial, sans-serif">Native Google sign-in, bearer auth, nearby discovery, profile, post, and trip routes.</text>
+    <rect x="752" y="592" width="114" height="28" rx="14" fill="#EDE9FE"/>
+    <text x="776" y="610" fill="#6D28D9" font-size="12" font-family="Inter, Arial, sans-serif" font-weight="800">SDK 53</text>
+    <rect x="1108" y="490" width="174" height="122" rx="28" fill="#FFFFFF"/>
+    <rect x="1138" y="514" width="114" height="8" rx="4" fill="#CBD5E1"/>
+    <rect x="1140" y="540" width="110" height="46" rx="16" fill="#0EA5E9" fill-opacity="0.14"/>
+    <circle cx="1164" cy="602" r="8" fill="#13B6EC"/>
+    <circle cx="1200" cy="602" r="8" fill="#CBD5E1"/>
+    <circle cx="1236" cy="602" r="8" fill="#CBD5E1"/>
+  </g>
+</svg>
