@@ -14,9 +14,31 @@
 </p>
 
 <p align="center">
-  <strong>Pave takes the chaotic “I saw this on TikTok” phase of trip planning and turns it into something you can actually use.</strong>
+  <strong>Pave takes the messy “I saved this somewhere” phase of travel planning and turns it into something you can actually operate.</strong>
   <br />
-  It parses social travel intent, builds editable itineraries, publishes them into a social feed, supports remix and collaboration, and keeps the same product identity across web and mobile.
+  It parses social travel intent, drafts editable itineraries, publishes them into a social feed, supports remix and collaboration, and carries the same product identity across web and mobile.
+</p>
+
+<p align="center">
+  <em>This is the real product repo, not a landing-page shell pretending to be one.</em>
+</p>
+
+## At a Glance
+
+<p align="center">
+  <img src="./docs/assets/pave-product-loop.svg" alt="Pave product loop" width="100%" />
+</p>
+
+<p align="center">
+  Pave starts with unstructured travel intent, adds just enough system around it, and ends with a trip object people can actually reuse.
+</p>
+
+<p align="center">
+  <img src="./docs/assets/pave-surfaces.svg" alt="Pave product surfaces" width="100%" />
+</p>
+
+<p align="center">
+  <img src="./docs/assets/pave-architecture.svg" alt="Pave architecture overview" width="100%" />
 </p>
 
 ## Proprietary Notice
