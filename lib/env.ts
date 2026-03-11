@@ -1,5 +1,11 @@
 import { z } from "zod";
 
+const booleanFlag = z.preprocess((value) => {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") return value.toLowerCase() === "true";
+  return false;
+}, z.boolean());
+
 const envSchema = z.object({
   DATABASE_URL: z
     .string()
@@ -20,7 +26,12 @@ const envSchema = z.object({
   GOOGLE_ANDROID_CLIENT_ID: z.string().optional(),
   MOBILE_AUTH_JWT_SECRET: z.string().optional(),
   MOBILE_ACCESS_TOKEN_TTL_MINUTES: z.coerce.number().default(15),
-  MOBILE_REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30)
+  MOBILE_REFRESH_TOKEN_TTL_DAYS: z.coerce.number().default(30),
+  OPENAI_API_KEY: z.string().optional(),
+  OPENAI_RESPONSES_MODEL: z.string().default("gpt-4.1-mini"),
+  OPENAI_VECTOR_STORE_ID: z.string().optional(),
+  ENABLE_AI_CREATE: booleanFlag.default(false),
+  NEXT_PUBLIC_ENABLE_AI_CREATE: booleanFlag.default(false)
 });
 
 export const env = envSchema.parse({
@@ -41,5 +52,10 @@ export const env = envSchema.parse({
   GOOGLE_ANDROID_CLIENT_ID: process.env.GOOGLE_ANDROID_CLIENT_ID,
   MOBILE_AUTH_JWT_SECRET: process.env.MOBILE_AUTH_JWT_SECRET,
   MOBILE_ACCESS_TOKEN_TTL_MINUTES: process.env.MOBILE_ACCESS_TOKEN_TTL_MINUTES,
-  MOBILE_REFRESH_TOKEN_TTL_DAYS: process.env.MOBILE_REFRESH_TOKEN_TTL_DAYS
+  MOBILE_REFRESH_TOKEN_TTL_DAYS: process.env.MOBILE_REFRESH_TOKEN_TTL_DAYS,
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  OPENAI_RESPONSES_MODEL: process.env.OPENAI_RESPONSES_MODEL,
+  OPENAI_VECTOR_STORE_ID: process.env.OPENAI_VECTOR_STORE_ID,
+  ENABLE_AI_CREATE: process.env.ENABLE_AI_CREATE,
+  NEXT_PUBLIC_ENABLE_AI_CREATE: process.env.NEXT_PUBLIC_ENABLE_AI_CREATE
 });
