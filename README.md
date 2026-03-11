@@ -87,6 +87,7 @@ The web app is the primary full-feature surface today.
 Implemented flows include:
 
 - landing and create flows
+- advisory AI-assisted create flow with review-before-save behavior
 - feed browsing and engagement
 - post detail and comments
 - profile pages with posts and saved items
@@ -155,6 +156,7 @@ Pave is organized as a single monorepo with:
 | Module | Responsibility |
 |---|---|
 | `lib/server/trip-service.ts` | creates trips, retrieves trip details, manages planner behavior |
+| `lib/server/ai/*` | OpenAI-backed advisory draft generation, schema guardrails, tool orchestration, retrieval wiring |
 | `lib/server/social-service.ts` | shapes posts, profiles, comments, feed DTOs, and post detail payloads |
 | `lib/server/feed-ranker.ts` | scores and re-ranks feed candidates with diversity logic |
 | `lib/server/events.ts` | event ingestion, action tracking, notification creation |
@@ -208,6 +210,7 @@ That package intentionally has no build step right now. The workspace consumes i
 | Domain | Routes |
 |---|---|
 | Auth | `/api/auth/[...nextauth]`, `/api/mobile/auth/*`, `/api/mobile/me` |
+| AI create | `/api/ai/trips/draft`, `/api/trips/from-draft` |
 | Feed | `/api/feed`, `/api/feed/for-you`, `/api/feed/following` |
 | Posts | `/api/posts`, `/api/posts/[postId]`, like/save/comment/delete |
 | Trips | `/api/trips`, `/api/trips/slug/[slug]`, share, invite, vote, remix, export |
@@ -372,6 +375,7 @@ This section is deliberately detailed. The script names alone do not explain the
 | `pnpm mobile:android` | `pnpm --filter @pave/mobile android` | runs the native Android app via Expo prebuild/run | requires Android SDK/emulator setup |
 | `pnpm mobile:typecheck` | `pnpm --filter @pave/mobile typecheck` | TypeScript check for the mobile workspace | useful before pushing mobile changes even if web is untouched |
 | `pnpm mobile:lint` | `pnpm --filter @pave/mobile lint` | ESLint for the mobile workspace | separate from root `pnpm lint` |
+| `pnpm ai:sync-knowledge` | `tsx scripts/ai/sync-knowledge.ts` | uploads curated markdown knowledge docs into the configured OpenAI vector store | requires `OPENAI_API_KEY` and `OPENAI_VECTOR_STORE_ID`; does not create the vector store for you |
 | `pnpm prisma:generate` | `prisma generate` | generates the Prisma client from the current schema | should be rerun after schema changes or dependency resets |
 | `pnpm prisma:migrate` | `prisma migrate dev` | authors and applies a local development migration | use this when intentionally evolving the schema |
 | `pnpm prisma:seed` | `prisma db seed` | seeds local data using `tsx prisma/seed.ts` | assumes the target DB is reachable |
@@ -474,6 +478,77 @@ Pave uses multiple env files on purpose.
 | `MOBILE_AUTH_JWT_SECRET` | signing secret for mobile access tokens | mobile bearer auth |
 | `MOBILE_ACCESS_TOKEN_TTL_MINUTES` | mobile access token lifetime | mobile auth session tuning |
 | `MOBILE_REFRESH_TOKEN_TTL_DAYS` | mobile refresh token lifetime | mobile auth session tuning |
+| `OPENAI_API_KEY` | server-side OpenAI credential for advisory itinerary drafting | `/api/ai/trips/draft`, knowledge sync |
+| `OPENAI_RESPONSES_MODEL` | model name used for the AI create flow | OpenAI Responses API calls |
+| `OPENAI_VECTOR_STORE_ID` | vector store id for curated planning docs | OpenAI file search tool |
+| `ENABLE_AI_CREATE` | server-side gate for AI create behavior | AI draft route |
+| `NEXT_PUBLIC_ENABLE_AI_CREATE` | client-side gate for showing the AI drafting path | `/create` UI |
+
+## AI Create Flow
+
+The web create surface now has two generation modes:
+
+1. **Pave AI draft**
+   - advisory only
+   - parses social context and preferences
+   - resolves the destination place
+   - calls the OpenAI Responses API with:
+     - strict JSON schema output
+     - read-only live-data tools
+     - optional file-search retrieval over curated internal docs
+   - returns a draft for user review
+   - does not persist anything until the user explicitly accepts the draft
+
+2. **Standard generator**
+   - existing deterministic itinerary path
+   - still available as the fallback and as a direct non-AI option
+
+### AI route contract
+
+- `POST /api/ai/trips/draft`
+  - input: caption, links, selected destination place, normalized preferences
+  - output: structured advisory draft plus `generationMode` of `ai` or `fallback`
+
+- `POST /api/trips/from-draft`
+  - input: accepted draft plus preferences
+  - output: persisted trip using canonical place resolution for every draft item
+
+### Guardrails
+
+- drafts are limited to 1 to 3 days
+- every item must be backed by a real `placeId`
+- duplicate place ids are rejected
+- at most one `stay` item is allowed
+- invalid model output falls back to the deterministic draft path instead of hard-failing the user flow
+
+### Knowledge sync workflow
+
+Curated retrieval documents live in [docs/ai-knowledge](./docs/ai-knowledge).
+
+To sync them into the configured OpenAI vector store:
+
+```bash
+pnpm ai:sync-knowledge
+```
+
+Required env vars:
+
+```bash
+OPENAI_API_KEY=...
+OPENAI_VECTOR_STORE_ID=...
+```
+
+This script uploads each markdown file and attaches it to the specified vector store. It assumes the vector store already exists.
+
+### Current local status
+
+The AI create code path is implemented and validated at build/test level, but a **real live smoke test requires valid provider secrets**:
+
+- `OPENAI_API_KEY`
+- `OPENAI_VECTOR_STORE_ID`
+- `GOOGLE_MAPS_API_KEY_SERVER`
+
+Without those values, the app can still compile and the AI route can safely degrade to fallback behavior, but the true parse -> draft -> accept -> publish loop cannot be verified against live providers.
 
 ### Mobile Expo public variables
 

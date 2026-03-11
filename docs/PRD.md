@@ -74,6 +74,7 @@ Be the fastest path from “I saw this online” to “I have a workable plan I 
 - Place search and Place Hub browse (Eat/Stay/Do).
 - Social link + caption parsing into location hints.
 - Preference-aware itinerary generation.
+- Advisory AI-assisted itinerary drafting for the web create flow, with explicit review before persistence.
 - Trip builder CRUD and drag/drop-like reordering UX.
 - Public trip share and group invite voting.
 - Authenticated social feed and post publishing.
@@ -117,6 +118,24 @@ Be the fastest path from “I saw this online” to “I have a workable plan I 
   - pace (`slow|balanced|packed`)
   - vibe tags
   - dietary tags
+
+## 7.3A Advisory AI Create Flow
+- The web `/create` surface must support an AI draft path in addition to the deterministic generator.
+- AI create is **advisory-first**:
+  - draft first,
+  - review second,
+  - persist only after explicit user acceptance.
+- The AI draft path must:
+  - use OpenAI Responses API
+  - enforce a strict structured output schema
+  - use read-only live-data tools for place details, nearby search, and requester-only user context
+  - optionally use file-search retrieval over curated internal planning docs
+- The AI draft path must not:
+  - mutate trips directly
+  - invent place ids
+  - invent reservations, hours, or transport guarantees
+- If the AI path fails, times out, emits malformed output, duplicates places, or references unresolved places, the system must degrade to a deterministic fallback draft instead of hard-failing the create flow.
+- The deterministic generator remains a first-class option and the fallback path.
 
 ## 7.4 Social Posts and Feed
 - Post must reference an existing trip.
@@ -180,6 +199,8 @@ All contributor changes to model must include:
 
 ## Planner + sharing APIs
 - `POST /api/trips`
+- `POST /api/ai/trips/draft`
+- `POST /api/trips/from-draft`
 - `GET /api/trips/slug/[slug]`
 - `POST /api/trips/[tripId]/items/add`
 - `POST /api/trips/[tripId]/items/remove`
@@ -204,7 +225,7 @@ All contributor changes to model must include:
 
 - `/`: Planner-first landing + CTA to feed/create
 - `/feed`: Public post list with engagement actions
-- `/create`: Social links + preferences -> generate trip -> optional publish
+- `/create`: Social links + preferences -> parse -> AI draft or deterministic generation -> review -> create trip -> optional publish
 - `/post/[postId]`: Post detail + source links + comments + report
 - `/profile/[username]`: Author posts + saved posts (visibility-safe)
 - `/trip/[slug]`: Builder + share + remix + export + vote
@@ -233,12 +254,13 @@ All contributor changes to model must include:
 ## Observability (minimum)
 - Log route-level errors with endpoint and request context.
 - Track export failures and moderation events.
+- Track AI create request, success, fallback, accept, and reject events with lightweight metadata only.
 
 ---
 
 ## 12) Known Failure Modes and Fix Playbook
 
-1. **Missing env variables (`DATABASE_URL`, Google keys, OAuth secrets)**
+1. **Missing env variables (`DATABASE_URL`, Google keys, OAuth secrets, OpenAI AI-create vars)**
 - Symptom: Prisma runtime errors, invalid key errors.
 - Fix: `.env` + `.env.local` sync from `.env.example`, verify values, restart server.
 
@@ -261,6 +283,14 @@ All contributor changes to model must include:
 6. **Visibility leakage for unlisted content**
 - Symptom: unlisted appears on profile/feed to non-owners.
 - Fix: enforce visibility filters in all list queries.
+
+7. **AI draft path disabled or misconfigured**
+- Symptom: `/create` hides AI path or AI route always returns fallback with `ai_disabled`.
+- Fix: set `OPENAI_API_KEY`, `OPENAI_RESPONSES_MODEL`, `OPENAI_VECTOR_STORE_ID`, `ENABLE_AI_CREATE`, and `NEXT_PUBLIC_ENABLE_AI_CREATE`.
+
+8. **Knowledge sync cannot upload docs**
+- Symptom: `pnpm ai:sync-knowledge` fails before upload or while attaching files.
+- Fix: confirm `OPENAI_API_KEY` and `OPENAI_VECTOR_STORE_ID`, verify the target vector store already exists, then rerun the sync.
 
 ---
 
@@ -289,6 +319,7 @@ This command is the canonical contributor onboarding path and must:
 pnpm dev        # web only
 pnpm mobile:dev # mobile only
 pnpm dev:all    # web + mobile
+pnpm ai:sync-knowledge # upload curated planning docs into the configured OpenAI vector store
 ```
 
 ## Database helpers
@@ -316,6 +347,21 @@ pnpm test
 pnpm lint
 pnpm build
 ```
+
+## AI create local readiness
+To exercise the live AI create path locally, contributors also need:
+
+```bash
+OPENAI_API_KEY=...
+OPENAI_RESPONSES_MODEL=gpt-4.1-mini
+OPENAI_VECTOR_STORE_ID=...
+ENABLE_AI_CREATE=true
+NEXT_PUBLIC_ENABLE_AI_CREATE=true
+```
+
+The following live checks are not complete until valid provider secrets are present:
+- vector-store sync of `docs/ai-knowledge/*`
+- real parse -> draft -> accept -> publish smoke test on `/create`
 
 ## Contributor rules
 - Keep API response shapes explicit (`select`, not broad `include` for user objects).
