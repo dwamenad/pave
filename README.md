@@ -19,6 +19,14 @@
   It parses social travel intent, builds editable itineraries, publishes them into a social feed, supports remix and collaboration, and keeps the same product identity across web and mobile.
 </p>
 
+## Proprietary Notice
+
+This repository is proprietary. It is **not** open source.
+
+- All rights are reserved.
+- No permission is granted to copy, modify, distribute, sublicense, sell, or reuse this codebase without prior written permission.
+- See [LICENSE](./LICENSE) for the repository notice currently applied.
+
 ## Why Pave Exists
 
 Travel planning usually breaks in one of two places:
@@ -302,6 +310,7 @@ These models reduce repeated external lookups and protect latency/quota usage.
 
 - Product requirements: [docs/PRD.md](./docs/PRD.md)
 - Contributor onboarding: [docs/CONTRIBUTOR_SETUP.md](./docs/CONTRIBUTOR_SETUP.md)
+- Repository usage policy: [docs/REPO_POLICY.md](./docs/REPO_POLICY.md)
 - Mobile infrastructure: [docs/MOBILE_INFRA.md](./docs/MOBILE_INFRA.md)
 - Mobile beta QA: [docs/MOBILE_BETA_QA.md](./docs/MOBILE_BETA_QA.md)
 - Reliability baseline: [docs/SLOS_AND_DASHBOARDS.md](./docs/SLOS_AND_DASHBOARDS.md)
