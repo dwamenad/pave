@@ -34,6 +34,15 @@ Pave bridges both.
 
 Be the fastest path from “I saw this online” to “I have a workable plan I can use, share, and remix.”
 
+## 3A) Intellectual Property Posture
+
+Pave is a proprietary product. The repository is not intended to be open source, and contributor access should not be interpreted as permission to reuse the codebase outside authorized work on Pave.
+
+Operationally, this means:
+- repository notices must remain explicit and current,
+- contributor docs must state the proprietary posture clearly,
+- any future public packages or open-source utilities must be carved out deliberately with their own license.
+
 ---
 
 ## 4) Objectives and Success Metrics
