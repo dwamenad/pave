@@ -1,0 +1,84 @@
+<svg width="1400" height="520" viewBox="0 0 1400 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="loopBg" x1="32" y1="30" x2="1368" y2="490" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F7FBFF"/>
+      <stop offset="0.55" stop-color="#EEF7FF"/>
+      <stop offset="1" stop-color="#F0FDFA"/>
+    </linearGradient>
+    <filter id="loopShadow" x="0" y="0" width="1400" height="520" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#0F172A" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect x="20" y="20" width="1360" height="480" rx="30" fill="url(#loopBg)"/>
+  <text x="70" y="92" fill="#13B6EC" font-size="16" font-family="Inter, Arial, sans-serif" font-weight="800" letter-spacing="2">THE CORE PRODUCT LOOP</text>
+  <text x="70" y="138" fill="#0F172A" font-size="36" font-family="Inter, Arial, sans-serif" font-weight="800">From social signal to reusable trip object</text>
+  <text x="70" y="174" fill="#475569" font-size="20" font-family="Inter, Arial, sans-serif">The product starts messy on purpose, then gets progressively more structured.</text>
+
+  <path d="M176 312H304" stroke="#7DD3FC" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+  <path d="M400 312H528" stroke="#7DD3FC" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+  <path d="M624 312H752" stroke="#7DD3FC" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+  <path d="M848 312H976" stroke="#7DD3FC" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+  <path d="M1072 312H1200" stroke="#7DD3FC" stroke-width="4" stroke-linecap="round" stroke-dasharray="10 10"/>
+
+  <g filter="url(#loopShadow)">
+    <rect x="70" y="238" width="160" height="154" rx="22" fill="#FFFFFF"/>
+    <rect x="70.5" y="238.5" width="159" height="153" rx="21.5" stroke="#DBEAFE"/>
+    <circle cx="110" cy="278" r="22" fill="#DBEAFE"/>
+    <text x="103" y="286" fill="#2563EB" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="800">1</text>
+    <text x="94" y="322" fill="#0F172A" font-size="20" font-family="Inter, Arial, sans-serif" font-weight="800">Discover</text>
+    <text x="94" y="350" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">Saved posts, captions,</text>
+    <text x="94" y="370" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">links, and loose intent.</text>
+  </g>
+
+  <g filter="url(#loopShadow)">
+    <rect x="294" y="238" width="160" height="154" rx="22" fill="#FFFFFF"/>
+    <rect x="294.5" y="238.5" width="159" height="153" rx="21.5" stroke="#D9F99D"/>
+    <circle cx="334" cy="278" r="22" fill="#ECFCCB"/>
+    <text x="327" y="286" fill="#4D7C0F" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="800">2</text>
+    <text x="320" y="322" fill="#0F172A" font-size="20" font-family="Inter, Arial, sans-serif" font-weight="800">Parse</text>
+    <text x="318" y="350" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">Resolve destination and</text>
+    <text x="318" y="370" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">social context signals.</text>
+  </g>
+
+  <g filter="url(#loopShadow)">
+    <rect x="518" y="224" width="180" height="182" rx="24" fill="#0EA5E9" fill-opacity="0.08"/>
+    <rect x="519.5" y="225.5" width="177" height="179" rx="22.5" stroke="#38BDF8" stroke-width="3"/>
+    <circle cx="562" cy="268" r="24" fill="#BAE6FD"/>
+    <text x="554" y="276" fill="#0369A1" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="800">3</text>
+    <text x="548" y="316" fill="#0F172A" font-size="22" font-family="Inter, Arial, sans-serif" font-weight="800">Draft</text>
+    <text x="548" y="346" fill="#475569" font-size="14" font-family="Inter, Arial, sans-serif">Advisory AI plus a</text>
+    <text x="548" y="366" fill="#475569" font-size="14" font-family="Inter, Arial, sans-serif">deterministic fallback.</text>
+    <rect x="548" y="382" width="112" height="24" rx="12" fill="#FFFFFF"/>
+    <text x="566" y="398" fill="#0C7BB0" font-size="11" font-family="Inter, Arial, sans-serif" font-weight="800" letter-spacing="0.9">REVIEW REQUIRED</text>
+  </g>
+
+  <g filter="url(#loopShadow)">
+    <rect x="742" y="238" width="160" height="154" rx="22" fill="#FFFFFF"/>
+    <rect x="742.5" y="238.5" width="159" height="153" rx="21.5" stroke="#E9D5FF"/>
+    <circle cx="782" cy="278" r="22" fill="#F3E8FF"/>
+    <text x="774" y="286" fill="#7E22CE" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="800">4</text>
+    <text x="768" y="322" fill="#0F172A" font-size="20" font-family="Inter, Arial, sans-serif" font-weight="800">Review</text>
+    <text x="766" y="350" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">Accept, reject, or fall</text>
+    <text x="766" y="370" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">back to standard build.</text>
+  </g>
+
+  <g filter="url(#loopShadow)">
+    <rect x="966" y="238" width="160" height="154" rx="22" fill="#FFFFFF"/>
+    <rect x="966.5" y="238.5" width="159" height="153" rx="21.5" stroke="#FDE68A"/>
+    <circle cx="1006" cy="278" r="22" fill="#FEF3C7"/>
+    <text x="998" y="286" fill="#B45309" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="800">5</text>
+    <text x="986" y="322" fill="#0F172A" font-size="20" font-family="Inter, Arial, sans-serif" font-weight="800">Publish</text>
+    <text x="990" y="350" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">Turn a plan into a</text>
+    <text x="990" y="370" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">social feed object.</text>
+  </g>
+
+  <g filter="url(#loopShadow)">
+    <rect x="1190" y="238" width="160" height="154" rx="22" fill="#FFFFFF"/>
+    <rect x="1190.5" y="238.5" width="159" height="153" rx="21.5" stroke="#99F6E4"/>
+    <circle cx="1230" cy="278" r="22" fill="#CCFBF1"/>
+    <text x="1222" y="286" fill="#0F766E" font-size="18" font-family="Inter, Arial, sans-serif" font-weight="800">6</text>
+    <text x="1212" y="322" fill="#0F172A" font-size="20" font-family="Inter, Arial, sans-serif" font-weight="800">Reuse</text>
+    <text x="1212" y="350" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">Remix, share, export,</text>
+    <text x="1212" y="370" fill="#64748B" font-size="14" font-family="Inter, Arial, sans-serif">and carry to mobile.</text>
+  </g>
+</svg>
