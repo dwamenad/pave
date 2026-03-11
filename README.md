@@ -14,24 +14,35 @@
 </p>
 
 <p align="center">
-  <strong>Pave turns travel inspiration into usable itineraries, then makes those itineraries social.</strong>
+  <strong>Pave takes the chaotic “I saw this on TikTok” phase of trip planning and turns it into something you can actually use.</strong>
   <br />
-  Users discover places from social content, build and edit plans, publish them into a feed, remix community trips, and carry the same identity into mobile.
+  It parses social travel intent, builds editable itineraries, publishes them into a social feed, supports remix and collaboration, and keeps the same product identity across web and mobile.
 </p>
 
-## What This Repository Contains
+## Why Pave Exists
 
-This repository is the working product codebase for Pave.
+Travel planning usually breaks in one of two places:
 
-It contains:
+- inspiration is everywhere, but hard to turn into a real plan
+- planners are useful, but disconnected from how people actually discover trips
+
+Pave is built to close that gap.
+
+The product starts where most people actually start: a caption, a reel, a saved post, a half-formed idea about where they want to go. From there, Pave turns that intent into a practical itinerary and gives it a social life after creation.
+
+## What Lives In This Repo
+
+This repository is the working product codebase for Pave. It is not a brochure repo or a design-only shell.
+
+It includes:
 
 - the **web product** built with Next.js App Router
 - the **mobile beta client** built with Expo Router / React Native
-- the **shared API contracts** package used by both clients
-- the **server-side services** for trip generation, social feed shaping, moderation, exports, event tracking, and mobile auth
-- the **Prisma schema** for the planner, social, growth, moderation, export, and mobile device/session models
+- the **shared contracts** package used by both clients
+- the **server-side planning, social, moderation, export, and event services**
+- the **Prisma schema** for planner, feed, identity, growth, and mobile session models
 
-This is not just a marketing shell. The repo implements the real product loops:
+This repo implements the actual product loops:
 
 1. discover travel inspiration
 2. convert that inspiration into a trip
@@ -46,7 +57,7 @@ Pave sits between travel inspiration products and travel planning products.
 Most travel content products help users **find ideas** but stop there.
 Most travel planning tools help users **organize trips** but are disconnected from the original social content that created intent.
 
-Pave bridges that gap.
+Pave is the bridge. Not a passive scrapbook. Not a sterile itinerary spreadsheet. A system that turns intent into action.
 
 ### Core user loops
 
@@ -114,7 +125,7 @@ Implemented flows include:
 
 The mobile app is not a separate backend. It intentionally reuses the same core APIs wherever possible.
 
-## Repository Layout
+## Repo Layout
 
 | Path | Purpose |
 |---|---|
@@ -296,7 +307,7 @@ These models reduce repeated external lookups and protect latency/quota usage.
 - Reliability baseline: [docs/SLOS_AND_DASHBOARDS.md](./docs/SLOS_AND_DASHBOARDS.md)
 - Redesign rollout checklist: [docs/REDESIGN_ROLLOUT_CHECKLIST.md](./docs/REDESIGN_ROLLOUT_CHECKLIST.md)
 
-## Requirements
+## Runtime Requirements
 
 ### Required versions
 
@@ -549,6 +560,18 @@ The AI create code path is implemented and validated at build/test level, but a 
 - `GOOGLE_MAPS_API_KEY_SERVER`
 
 Without those values, the app can still compile and the AI route can safely degrade to fallback behavior, but the true parse -> draft -> accept -> publish loop cannot be verified against live providers.
+
+## What’s Actually Interesting Here
+
+If you are scanning this repo to figure out whether it is real, these are the parts worth opening first:
+
+- [components/create-itinerary-form.tsx](./components/create-itinerary-form.tsx) for the social-input-to-trip flow
+- [lib/server/trip-service.ts](./lib/server/trip-service.ts) for planner generation and accepted-draft persistence
+- [lib/server/ai/](./lib/server/ai) for the advisory AI create path
+- [app/api/posts](./app/api/posts) and [lib/server/social-service.ts](./lib/server/social-service.ts) for the social layer
+- [apps/mobile](./apps/mobile) for the shared-backend mobile beta client
+
+This is a product repo with real edges: auth, moderation, exports, ranking, retries, mobile sessions, and now advisory AI drafting. It is not trying to look polished by avoiding complexity. It is trying to be useful.
 
 ### Mobile Expo public variables
 
