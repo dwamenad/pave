@@ -7,7 +7,12 @@ export const TRACKED_EVENT_NAMES = [
   "share_trip",
   "comment_post",
   "follow_user",
-  "mobile_error"
+  "mobile_error",
+  "ai_draft_requested",
+  "ai_draft_completed",
+  "ai_draft_fallback",
+  "ai_draft_accepted",
+  "ai_draft_rejected"
 ] as const;
 
 export type TrackedEventName = (typeof TRACKED_EVENT_NAMES)[number];
