@@ -1,7 +1,8 @@
 "use client";
 
+import type { AiTripDraftResponse, CreateTripFromDraftRequest } from "@pave/contracts";
 import { useMemo, useState } from "react";
-import { ArrowRight, LocateFixed, Sparkles, Wand2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, LocateFixed, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ type PreferenceState = {
 };
 
 export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: string }) {
+  const aiCreateEnabled = process.env.NEXT_PUBLIC_ENABLE_AI_CREATE === "true";
   const [caption, setCaption] = useState("");
   const [linksInput, setLinksInput] = useState("");
   const [metadataPreview, setMetadataPreview] = useState<Array<{ title?: string; url: string }>>([]);
@@ -29,6 +31,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
   const [status, setStatus] = useState("");
   const [tripUrl, setTripUrl] = useState("");
   const [postUrl, setPostUrl] = useState("");
+  const [draft, setDraft] = useState<AiTripDraftResponse | null>(null);
   const [pref, setPref] = useState<PreferenceState>({
     budget: "mid",
     days: 2,
@@ -40,15 +43,58 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
   const parsedLinks = useMemo(
     () =>
       linksInput
-        .split(/\n|,/) 
+        .split(/\n|,/)
         .map((value) => value.trim())
         .filter(Boolean)
         .slice(0, 5),
     [linksInput]
   );
 
+  const normalizedPreferences = useMemo(
+    () => ({
+      budget: pref.budget,
+      days: pref.days,
+      pace: pref.pace,
+      vibeTags: pref.vibeTags.split(",").map((value) => value.trim()).filter(Boolean),
+      dietary: pref.dietary.split(",").map((value) => value.trim()).filter(Boolean)
+    }),
+    [pref]
+  );
+
+  async function maybePublishPost(tripId: string, destinationLabel: string) {
+    if (!publishAfterCreate) {
+      return { nextPostUrl: "" };
+    }
+
+    setStatus("Publishing post...");
+    const postResponse = await fetch("/api/posts", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tripId,
+        caption,
+        mediaUrl: parsedLinks[0] || null,
+        visibility,
+        destinationLabel,
+        tags: normalizedPreferences.vibeTags,
+        links: parsedLinks
+      })
+    });
+
+    const postData = await postResponse.json();
+    if (postData.post?.id) {
+      const nextPostUrl = `/post/${postData.post.id}`;
+      setPostUrl(nextPostUrl);
+      return { nextPostUrl };
+    }
+
+    setStatus(postData.error || "Trip created, but post publishing failed.");
+    return { nextPostUrl: "" };
+  }
+
   async function detectLocation() {
     setStatus("Parsing social input...");
+    setDraft(null);
     const response = await fetch("/api/social/parse", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -84,6 +130,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
       return;
     }
 
+    setDraft(null);
     setStatus("Loading place details...");
     const detailsResponse = await fetch(`/api/places/details?placeId=${encodeURIComponent(selectedPlaceId)}`);
     const detailsData = await detailsResponse.json();
@@ -93,6 +140,8 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
       return;
     }
 
+    setTripUrl("");
+    setPostUrl("");
     setStatus("Generating itinerary...");
     const tripResponse = await fetch("/api/trips", {
       method: "POST",
@@ -104,13 +153,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
         centerLng: place.lng,
         days: pref.days,
         budget: pref.budget,
-        preferences: {
-          budget: pref.budget,
-          days: pref.days,
-          pace: pref.pace,
-          vibeTags: pref.vibeTags.split(",").map((v) => v.trim()).filter(Boolean),
-          dietary: pref.dietary.split(",").map((v) => v.trim()).filter(Boolean)
-        }
+        preferences: normalizedPreferences
       })
     });
 
@@ -128,41 +171,119 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
       return;
     }
 
-    setStatus("Publishing post...");
-    const postResponse = await fetch("/api/posts", {
+    const publishResult = await maybePublishPost(tripData.trip.id, place.name);
+    if (publishResult.nextPostUrl) {
+      setStatus("Trip created and post published.");
+    }
+  }
+
+  async function draftWithAi() {
+    if (!selectedPlaceId) {
+      setStatus("Pick a location first.");
+      return;
+    }
+
+    setTripUrl("");
+    setPostUrl("");
+    setStatus("Drafting with Pave AI...");
+
+    const response = await fetch("/api/ai/trips/draft", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        tripId: tripData.trip.id,
         caption,
-        mediaUrl: parsedLinks[0] || null,
-        visibility,
-        destinationLabel: place.name,
-        tags: pref.vibeTags.split(",").map((value) => value.trim()).filter(Boolean),
-        links: parsedLinks
+        links: parsedLinks,
+        selectedPlaceId,
+        preferences: normalizedPreferences
       })
     });
 
-    const postData = await postResponse.json();
-    if (postData.post?.id) {
-      setPostUrl(`/post/${postData.post.id}`);
-      setStatus("Trip created and post published.");
-    } else {
-      setStatus(postData.error || "Trip created, but post publishing failed.");
+    const draftData = (await response.json()) as AiTripDraftResponse;
+    if (!response.ok) {
+      setStatus("Failed to draft itinerary with AI.");
+      return;
     }
+
+    setDraft(draftData);
+    setStatus(
+      draftData.generationMode === "ai"
+        ? "AI draft ready for review."
+        : `Fallback draft ready for review${draftData.fallbackReason ? ` (${draftData.fallbackReason.replaceAll("_", " ")})` : ""}.`
+    );
+  }
+
+  async function acceptDraft() {
+    if (!draft) {
+      setStatus("Draft a plan first.");
+      return;
+    }
+
+    setStatus("Saving accepted draft...");
+    const response = await fetch("/api/trips/from-draft", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        draft: draft.draft,
+        preferences: normalizedPreferences,
+        editedBeforeSave: false
+      } satisfies CreateTripFromDraftRequest)
+    });
+
+    const data = await response.json();
+    if (!response.ok || !data.trip?.id || !data.trip?.slug) {
+      setStatus(data.error || "Failed to save accepted draft.");
+      return;
+    }
+
+    const nextTripUrl = `/trip/${data.trip.slug}`;
+    setTripUrl(nextTripUrl);
+    const publishResult = await maybePublishPost(data.trip.id, draft.draft.destination.name);
+
+    if (publishResult.nextPostUrl) {
+      setStatus("Accepted draft saved and post published.");
+      return;
+    }
+
+    setStatus("Accepted draft saved.");
+  }
+
+  async function rejectDraft() {
+    if (!draft) return;
+
+    const rejected = draft;
+    setDraft(null);
+    setStatus("AI draft dismissed. You can still use the standard generator.");
+    await fetch("/api/events/batch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        events: [
+          {
+            name: "ai_draft_rejected",
+            props: {
+              generationMode: rejected.generationMode,
+              fallbackReason: rejected.fallbackReason ?? null
+            }
+          }
+        ]
+      })
+    }).catch(() => undefined);
   }
 
   return (
     <Card className="space-y-8 rounded-3xl border-slate-200 p-6 shadow-sm md:p-8">
       <div>
         <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Create Personalized Itinerary</h2>
-        <p className="mt-1 text-sm text-slate-500">Use social context + preferences to generate and optionally publish.</p>
+        <p className="mt-1 text-sm text-slate-500">Use social context + preferences to draft, review, and optionally publish.</p>
         <div className="mt-4 flex flex-wrap gap-2">
           <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
             Parse
           </span>
           <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
-            Generate
+            Draft
+          </span>
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
+            Review
           </span>
           <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
             Publish
@@ -217,7 +338,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
                 <option value="packed">Packed</option>
               </select>
 
-              <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={visibility} onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "UNLISTED") }>
+              <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={visibility} onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "UNLISTED")}>
                 <option value="PUBLIC">Public post</option>
                 <option value="UNLISTED">Unlisted post</option>
               </select>
@@ -239,9 +360,15 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
               <LocateFixed className="mr-2 h-4 w-4" />
               Parse + detect location
             </Button>
-            <Button className="rounded-xl px-4 font-bold" onClick={buildItinerary}>
+            {aiCreateEnabled ? (
+              <Button className="rounded-xl px-4 font-bold" onClick={draftWithAi}>
+                <Sparkles className="mr-2 h-4 w-4" />
+                Draft with Pave AI
+              </Button>
+            ) : null}
+            <Button className="rounded-xl px-4 font-bold" onClick={buildItinerary} variant={aiCreateEnabled ? "outline" : "default"}>
               <Wand2 className="mr-2 h-4 w-4" />
-              Generate itinerary
+              Use standard generator
             </Button>
             {tripUrl ? (
               <a
@@ -295,8 +422,81 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
             </div>
           ) : null}
 
-          {tripUrl ? <p className="text-sm text-slate-600">Trip: <a className="font-semibold text-primary underline" href={tripUrl}>{tripUrl}</a></p> : null}
-          {postUrl ? <p className="text-sm text-slate-600">Post: <a className="font-semibold text-primary underline" href={postUrl}>{postUrl}</a></p> : null}
+          {draft ? (
+            <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Draft review</p>
+                  <h4 className="text-sm font-bold text-slate-900">{draft.draft.title}</h4>
+                </div>
+                <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${draft.generationMode === "ai" ? "bg-primary/10 text-primary" : "bg-amber-100 text-amber-700"}`}>
+                  {draft.generationMode}
+                </span>
+              </div>
+
+              <p className="text-xs text-slate-600">{draft.draft.summary}</p>
+              {draft.fallbackReason ? (
+                <p className="text-xs text-amber-700">Fallback reason: {draft.fallbackReason.replaceAll("_", " ")}</p>
+              ) : null}
+
+              <div className="space-y-3">
+                {draft.draft.days.map((day) => (
+                  <div key={day.dayIndex} className="rounded-lg border border-slate-200 bg-white p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Day {day.dayIndex}</p>
+                        <h5 className="text-sm font-bold text-slate-900">{day.title}</h5>
+                      </div>
+                      <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
+                    </div>
+                    <p className="mt-1 text-xs text-slate-500">{day.summary}</p>
+                    <div className="mt-3 space-y-2">
+                      {day.items.map((item) => (
+                        <div key={`${day.dayIndex}-${item.placeId}`} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-sm font-semibold text-slate-800">{item.name}</p>
+                            <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">
+                              {item.category}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500">{item.rationale}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <Button className="rounded-xl px-4 font-bold" onClick={acceptDraft}>
+                  Accept AI draft
+                </Button>
+                <Button className="rounded-xl px-4 font-bold" variant="outline" onClick={buildItinerary}>
+                  Use standard generator instead
+                </Button>
+                <Button className="rounded-xl px-4 font-bold" variant="ghost" onClick={rejectDraft}>
+                  Dismiss
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+          {tripUrl ? (
+            <p className="text-sm text-slate-600">
+              Trip:{" "}
+              <a className="font-semibold text-primary underline" href={tripUrl}>
+                {tripUrl}
+              </a>
+            </p>
+          ) : null}
+          {postUrl ? (
+            <p className="text-sm text-slate-600">
+              Post:{" "}
+              <a className="font-semibold text-primary underline" href={postUrl}>
+                {postUrl}
+              </a>
+            </p>
+          ) : null}
           {status ? <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">{status}</p> : null}
         </div>
       </div>
