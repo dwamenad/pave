@@ -22,6 +22,7 @@
     "mobile:android": "pnpm --filter @pave/mobile android",
     "mobile:typecheck": "pnpm --filter @pave/mobile typecheck",
     "mobile:lint": "pnpm --filter @pave/mobile lint",
+    "ai:sync-knowledge": "tsx scripts/ai/sync-knowledge.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
