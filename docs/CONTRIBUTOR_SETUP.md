@@ -2,6 +2,12 @@
 
 This guide is the fastest path for contributors to run Pave locally (web + mobile) without manual environment handholding.
 
+## Repository posture
+
+Pave is a proprietary repository. Access for contribution does not grant permission to reuse or redistribute the code outside work authorized by the repository owner.
+
+Before sharing code, snippets, or internal docs externally, check [REPO_POLICY.md](./REPO_POLICY.md).
+
 ## Prerequisites
 - Node.js 22.x
 - pnpm 10.x
@@ -47,3 +53,9 @@ The setup script will:
 - To use Places API features without quota/auth errors, set both maps keys in `.env.local`:
   - `GOOGLE_MAPS_API_KEY_PUBLIC`
   - `GOOGLE_MAPS_API_KEY_SERVER`
+- To exercise the advisory AI create flow locally, also set:
+  - `OPENAI_API_KEY`
+  - `OPENAI_RESPONSES_MODEL`
+  - `OPENAI_VECTOR_STORE_ID`
+  - `ENABLE_AI_CREATE`
+  - `NEXT_PUBLIC_ENABLE_AI_CREATE`
