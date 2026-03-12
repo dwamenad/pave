@@ -1,12 +1,13 @@
+import { env } from "@/lib/env";
 import { GooglePlacesProvider } from "@/lib/providers/google-places";
-import type { PlacesProvider } from "@/lib/providers/types";
-import { getNearbyCache, getPlaceCache, setNearbyCache, setPlaceCache } from "@/lib/server/cache";
-import type { NearbySearchInput, PlaceDetails, PlaceSuggestion } from "@/lib/types";
+import { MockPlacesProvider } from "@/lib/providers/mock-places";
+import type { NearbySearchInput } from "@/lib/types";
 
-const provider = new GooglePlacesProvider();
+const NEARBY_CACHE_KEY_VERSION = "v2";
 
-function key(input: NearbySearchInput) {
+export function buildNearbyCacheKey(input: NearbySearchInput) {
   return [
+    NEARBY_CACHE_KEY_VERSION,
     input.lat.toFixed(4),
     input.lng.toFixed(4),
     input.type,
@@ -16,23 +17,6 @@ function key(input: NearbySearchInput) {
   ].join(":");
 }
 
-export const placesProvider: PlacesProvider = {
-  autocomplete(query: string, sessionToken?: string): Promise<PlaceSuggestion[]> {
-    return provider.autocomplete(query, sessionToken);
-  },
-  async placeDetails(placeId: string): Promise<PlaceDetails> {
-    const cached = await getPlaceCache<PlaceDetails>(placeId, 24);
-    if (cached) return cached;
-    const fresh = await provider.placeDetails(placeId);
-    await setPlaceCache(placeId, fresh);
-    return fresh;
-  },
-  async nearbySearch(input: NearbySearchInput): Promise<PlaceDetails[]> {
-    const cacheKey = key(input);
-    const cached = await getNearbyCache<PlaceDetails[]>(cacheKey, 6);
-    if (cached) return cached;
-    const fresh = await provider.nearbySearch(input);
-    await setNearbyCache(cacheKey, fresh);
-    return fresh;
-  }
-};
+export const mockPlacesProviderEnabled = env.USE_MOCK_PLACES_PROVIDER;
+
+export const placesProvider = mockPlacesProviderEnabled ? new MockPlacesProvider() : new GooglePlacesProvider();
