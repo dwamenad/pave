@@ -1,8 +1,13 @@
 "use client";
 
-import type { AiTripDraftResponse, CreateTripFromDraftRequest } from "@pave/contracts";
+import type {
+  AiDraftFallbackReason,
+  AiTripDraftResponse,
+  CreateTripFromDraftFailureCode,
+  CreateTripFromDraftRequest
+} from "@pave/contracts";
 import { useMemo, useState } from "react";
-import { ArrowRight, CheckCircle2, LocateFixed, Sparkles, Wand2 } from "lucide-react";
+import { AlertTriangle, ArrowRight, CheckCircle2, Info, LocateFixed, Sparkles, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +23,110 @@ type PreferenceState = {
   dietary: string;
 };
 
+type CreateStep =
+  | "idle"
+  | "parsing"
+  | "location_resolved"
+  | "drafting"
+  | "review_ready"
+  | "saving"
+  | "published"
+  | "degraded";
+
+type ParseResponse = {
+  hints?: string[];
+  resolved?: Suggestion;
+  ambiguous?: Suggestion[];
+  metadata?: Array<{ title?: string; url: string }>;
+  resolution?: "resolved" | "ambiguous" | "unresolved" | "degraded";
+  code?: string;
+  mockMode?: boolean;
+  error?: string;
+};
+
+type PlaceDetailsResponse = {
+  place?: {
+    placeId: string;
+    name: string;
+    lat: number;
+    lng: number;
+  };
+  code?: string;
+  degraded?: boolean;
+  stale?: boolean;
+  cacheState?: "hit" | "stale" | "miss";
+  mockMode?: boolean;
+};
+
+type StatusContext = {
+  resolution?: ParseResponse["resolution"];
+  code?: string;
+  generationMode?: "ai" | "fallback" | "standard";
+  fallbackReason?: AiDraftFallbackReason | CreateTripFromDraftFailureCode | null;
+  cacheState?: "hit" | "stale" | "miss";
+  publishAfterCreate?: boolean;
+  mockMode?: boolean;
+};
+
+function reasonCopy(code?: string | null) {
+  if (code === "provider_misconfigured") return "The place provider is not configured in this environment yet.";
+  if (code === "provider_unavailable") return "The place provider is temporarily unavailable. Retry in a moment or use mock mode locally.";
+  if (code === "rate_limited") return "This action is being rate limited right now. Please wait a moment and retry.";
+  if (code === "invalid_request") return "The request could not be completed. Review the selected location and try again.";
+  if (code === "draft_day_mismatch") return "The saved draft no longer matches the selected day count. Redraft the trip first.";
+  if (code === "duplicate_places") return "This draft includes duplicate places and needs to be regenerated before saving.";
+  if (code === "too_many_stays") return "This draft includes more than one stay recommendation. Use the standard generator or redraft it.";
+  if (code === "destination_unresolved") return "The destination could not be resolved at save time. Re-run location parsing first.";
+  if (code === "place_unresolved") return "One or more stops could not be resolved at save time. Redraft the plan or use the standard generator.";
+  if (code === "missing_place") return "No destination could be resolved for this draft.";
+  if (code === "unresolved_places") return "The AI draft referenced places that could not be verified.";
+  if (code === "duplicate_places") return "The draft duplicated places, so we switched to a safer fallback.";
+  if (code === "policy_invalid") return "The draft violated Pave's itinerary guardrails, so we switched to a safer fallback.";
+  if (code === "model_timeout") return "The AI response timed out, so the deterministic planner stepped in instead.";
+  if (code === "model_error") return "The AI response could not be used, so the deterministic planner stepped in instead.";
+  if (code === "ai_disabled") return "AI drafting is disabled right now, so the standard generator stays available.";
+  return "Something went wrong in this step. You can retry or use the standard generator.";
+}
+
+function createStatusMessage(step: CreateStep, context: StatusContext) {
+  switch (step) {
+    case "idle":
+      return "Paste social travel context, then parse the destination to start building a trip.";
+    case "parsing":
+      return "Parsing social input and resolving the most likely destination...";
+    case "location_resolved":
+      if (context.resolution === "ambiguous") {
+        return "Location suggestions are ready. Review the selected destination before drafting the trip.";
+      }
+      return "Destination resolved. You can draft with AI or use the standard generator.";
+    case "drafting":
+      return context.generationMode === "standard"
+        ? "Generating a deterministic itinerary from the resolved destination..."
+        : "Drafting an itinerary with Pave AI...";
+    case "review_ready":
+      if (context.generationMode === "fallback") {
+        return `Fallback draft ready for review. ${reasonCopy(context.fallbackReason)}`;
+      }
+      return "AI draft ready for review. Check the days and save when it looks right.";
+    case "saving":
+      return "Saving the reviewed trip and preparing it for publishing...";
+    case "published":
+      return context.publishAfterCreate ? "Trip created and post published." : "Trip created successfully.";
+    case "degraded":
+      return reasonCopy(context.fallbackReason || context.code);
+    default:
+      return "Create flow ready.";
+  }
+}
+
+async function trackClientEvents(events: Array<{ name: string; props: Record<string, unknown> }>) {
+  await fetch("/api/events/batch", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ events })
+  }).catch(() => undefined);
+}
+
 export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: string }) {
   const aiCreateEnabled = process.env.NEXT_PUBLIC_ENABLE_AI_CREATE === "true";
   const [caption, setCaption] = useState("");
@@ -28,10 +137,12 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
   const [selectedPlaceId, setSelectedPlaceId] = useState<string>(initialPlaceId || "");
   const [publishAfterCreate, setPublishAfterCreate] = useState(true);
   const [visibility, setVisibility] = useState<"PUBLIC" | "UNLISTED">("PUBLIC");
-  const [status, setStatus] = useState("");
+  const [step, setStep] = useState<CreateStep>(initialPlaceId ? "location_resolved" : "idle");
+  const [statusContext, setStatusContext] = useState<StatusContext>({ resolution: initialPlaceId ? "resolved" : "unresolved" });
   const [tripUrl, setTripUrl] = useState("");
   const [postUrl, setPostUrl] = useState("");
   const [draft, setDraft] = useState<AiTripDraftResponse | null>(null);
+  const [mockModeActive, setMockModeActive] = useState(false);
   const [pref, setPref] = useState<PreferenceState>({
     budget: "mid",
     days: 2,
@@ -43,7 +154,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
   const parsedLinks = useMemo(
     () =>
       linksInput
-        .split(/\n|,/)
+        .split(/\n|,/) 
         .map((value) => value.trim())
         .filter(Boolean)
         .slice(0, 5),
@@ -61,12 +172,13 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
     [pref]
   );
 
+  const statusMessage = useMemo(() => createStatusMessage(step, { ...statusContext, publishAfterCreate }), [publishAfterCreate, statusContext, step]);
+
   async function maybePublishPost(tripId: string, destinationLabel: string) {
     if (!publishAfterCreate) {
-      return { nextPostUrl: "" };
+      return { nextPostUrl: "", failed: false };
     }
 
-    setStatus("Publishing post...");
     const postResponse = await fetch("/api/posts", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -85,16 +197,35 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
     if (postData.post?.id) {
       const nextPostUrl = `/post/${postData.post.id}`;
       setPostUrl(nextPostUrl);
-      return { nextPostUrl };
+      return { nextPostUrl, failed: false };
     }
 
-    setStatus(postData.error || "Trip created, but post publishing failed.");
-    return { nextPostUrl: "" };
+    setStep("degraded");
+    setStatusContext((current) => ({ ...current, code: postData.code || "provider_unavailable" }));
+    return { nextPostUrl: "", failed: true };
   }
 
   async function detectLocation() {
-    setStatus("Parsing social input...");
+    setStep("parsing");
     setDraft(null);
+    setTripUrl("");
+    setPostUrl("");
+
+    await trackClientEvents([
+      {
+        name: "start_create_flow",
+        props: {
+          generationMode: aiCreateEnabled ? "ai" : "standard",
+          fallbackReason: null,
+          placeResolved: Boolean(selectedPlaceId),
+          cacheState: "miss",
+          signedIn: null,
+          days: pref.days,
+          publishAfterCreate
+        }
+      }
+    ]);
+
     const response = await fetch("/api/social/parse", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -104,45 +235,72 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
       })
     });
 
-    const data = await response.json();
+    const data = (await response.json()) as ParseResponse;
     setHints(data.hints || []);
-    setMetadataPreview((data.metadata || []).map((item: { title?: string; url: string }) => ({ title: item.title, url: item.url })));
+    setMetadataPreview((data.metadata || []).map((item) => ({ title: item.title, url: item.url })));
+    setMockModeActive(Boolean(data.mockMode));
 
+    const ambiguous = data.ambiguous || [];
     if (data.resolved?.placeId) {
       setSelectedPlaceId(data.resolved.placeId);
       setSuggestions([data.resolved]);
-      setStatus(`Resolved location: ${data.resolved.text}`);
-      return;
-    }
-
-    const ambiguous = (data.ambiguous || []) as Suggestion[];
-    setSuggestions(ambiguous);
-    if (ambiguous[0]?.placeId) {
+      setStep("location_resolved");
+      setStatusContext({ resolution: data.resolution, code: data.code, mockMode: data.mockMode });
+    } else if (ambiguous[0]?.placeId) {
+      setSuggestions(ambiguous);
       setSelectedPlaceId(ambiguous[0].placeId);
+      setStep("location_resolved");
+      setStatusContext({ resolution: data.resolution, code: data.code, mockMode: data.mockMode });
+    } else if (!response.ok || data.resolution === "degraded") {
+      setSuggestions([]);
+      setStep("degraded");
+      setStatusContext({ resolution: "degraded", code: data.code || "provider_unavailable", mockMode: data.mockMode });
+    } else {
+      setSuggestions([]);
+      setStep("idle");
+      setStatusContext({ resolution: data.resolution || "unresolved", code: data.code, mockMode: data.mockMode });
     }
 
-    setStatus(ambiguous.length ? "Select a location suggestion." : "No confident location found.");
+    await trackClientEvents([
+      {
+        name: "complete_parse_social",
+        props: {
+          generationMode: aiCreateEnabled ? "ai" : "standard",
+          fallbackReason: null,
+          placeResolved: Boolean(data.resolved?.placeId || ambiguous[0]?.placeId),
+          cacheState: "miss",
+          signedIn: null,
+          days: pref.days,
+          publishAfterCreate
+        }
+      }
+    ]);
   }
 
   async function buildItinerary() {
     if (!selectedPlaceId) {
-      setStatus("Pick a location first.");
+      setStep("degraded");
+      setStatusContext({ code: "destination_unresolved" });
       return;
     }
 
     setDraft(null);
-    setStatus("Loading place details...");
+    setTripUrl("");
+    setPostUrl("");
+    setStep("drafting");
+    setStatusContext({ generationMode: "standard", fallbackReason: null });
+
     const detailsResponse = await fetch(`/api/places/details?placeId=${encodeURIComponent(selectedPlaceId)}`);
-    const detailsData = await detailsResponse.json();
+    const detailsData = (await detailsResponse.json()) as PlaceDetailsResponse;
+    setMockModeActive(Boolean(detailsData.mockMode));
+
     const place = detailsData.place;
-    if (!place) {
-      setStatus("Failed to load place details.");
+    if (!detailsResponse.ok || !place) {
+      setStep("degraded");
+      setStatusContext({ code: detailsData.code || "provider_unavailable", cacheState: detailsData.cacheState, mockMode: detailsData.mockMode });
       return;
     }
 
-    setTripUrl("");
-    setPostUrl("");
-    setStatus("Generating itinerary...");
     const tripResponse = await fetch("/api/trips", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -159,33 +317,52 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
 
     const tripData = await tripResponse.json();
     if (!tripData.trip?.id || !tripData.trip?.slug) {
-      setStatus("Failed to create trip.");
+      setStep("degraded");
+      setStatusContext({ code: tripData.code || "provider_unavailable", cacheState: detailsData.cacheState, mockMode: detailsData.mockMode });
       return;
     }
 
     const nextTripUrl = `/trip/${tripData.trip.slug}`;
     setTripUrl(nextTripUrl);
 
-    if (!publishAfterCreate) {
-      setStatus("Trip created.");
+    await trackClientEvents([
+      {
+        name: "complete_trip_create",
+        props: {
+          generationMode: "standard",
+          fallbackReason: null,
+          placeResolved: true,
+          cacheState: detailsData.cacheState || "miss",
+          signedIn: null,
+          days: pref.days,
+          publishAfterCreate
+        }
+      }
+    ]);
+
+    const publishResult = await maybePublishPost(tripData.trip.id, place.name);
+    if (publishResult.failed) {
       return;
     }
 
-    const publishResult = await maybePublishPost(tripData.trip.id, place.name);
+    setStep("published");
+    setStatusContext({ generationMode: "standard", cacheState: detailsData.cacheState, mockMode: detailsData.mockMode, publishAfterCreate });
     if (publishResult.nextPostUrl) {
-      setStatus("Trip created and post published.");
+      return;
     }
   }
 
   async function draftWithAi() {
     if (!selectedPlaceId) {
-      setStatus("Pick a location first.");
+      setStep("degraded");
+      setStatusContext({ code: "destination_unresolved" });
       return;
     }
 
     setTripUrl("");
     setPostUrl("");
-    setStatus("Drafting with Pave AI...");
+    setStep("drafting");
+    setStatusContext({ generationMode: "ai", fallbackReason: null });
 
     const response = await fetch("/api/ai/trips/draft", {
       method: "POST",
@@ -198,27 +375,39 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
       })
     });
 
-    const draftData = (await response.json()) as AiTripDraftResponse;
-    if (!response.ok) {
-      setStatus("Failed to draft itinerary with AI.");
+    const draftData = (await response.json()) as AiTripDraftResponse & { error?: string; code?: string };
+    if (!response.ok || !draftData.draft) {
+      setStep("degraded");
+      setStatusContext({ code: draftData.code || "provider_unavailable" });
       return;
     }
 
     setDraft(draftData);
-    setStatus(
-      draftData.generationMode === "ai"
-        ? "AI draft ready for review."
-        : `Fallback draft ready for review${draftData.fallbackReason ? ` (${draftData.fallbackReason.replaceAll("_", " ")})` : ""}.`
-    );
+    setMockModeActive(Boolean(draftData.provider?.mockMode));
+    setStep("review_ready");
+    setStatusContext({
+      generationMode: draftData.generationMode,
+      fallbackReason: draftData.fallbackReason ?? null,
+      cacheState: draftData.provider?.cacheState,
+      mockMode: draftData.provider?.mockMode
+    });
   }
 
   async function acceptDraft() {
     if (!draft) {
-      setStatus("Draft a plan first.");
+      setStep("degraded");
+      setStatusContext({ code: "place_unresolved" });
       return;
     }
 
-    setStatus("Saving accepted draft...");
+    setStep("saving");
+    setStatusContext({
+      generationMode: draft.generationMode,
+      fallbackReason: draft.fallbackReason ?? null,
+      cacheState: draft.provider?.cacheState,
+      mockMode: draft.provider?.mockMode
+    });
+
     const response = await fetch("/api/trips/from-draft", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -231,20 +420,52 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
 
     const data = await response.json();
     if (!response.ok || !data.trip?.id || !data.trip?.slug) {
-      setStatus(data.error || "Failed to save accepted draft.");
+      setStep("degraded");
+      setStatusContext({
+        generationMode: draft.generationMode,
+        fallbackReason: (data.code as CreateTripFromDraftFailureCode | undefined) ?? draft.fallbackReason ?? null,
+        code: data.code,
+        cacheState: draft.provider?.cacheState,
+        mockMode: draft.provider?.mockMode
+      });
       return;
     }
 
     const nextTripUrl = `/trip/${data.trip.slug}`;
     setTripUrl(nextTripUrl);
-    const publishResult = await maybePublishPost(data.trip.id, draft.draft.destination.name);
 
-    if (publishResult.nextPostUrl) {
-      setStatus("Accepted draft saved and post published.");
+    await trackClientEvents([
+      {
+        name: "complete_trip_create",
+        props: {
+          generationMode: draft.generationMode,
+          fallbackReason: draft.fallbackReason ?? null,
+          placeResolved: true,
+          cacheState: draft.provider?.cacheState ?? "miss",
+          signedIn: null,
+          days: pref.days,
+          publishAfterCreate
+        }
+      }
+    ]);
+
+    const publishResult = await maybePublishPost(data.trip.id, draft.draft.destination.name);
+    if (publishResult.failed) {
       return;
     }
 
-    setStatus("Accepted draft saved.");
+    setStep("published");
+    setStatusContext({
+      generationMode: draft.generationMode,
+      fallbackReason: draft.fallbackReason ?? null,
+      cacheState: draft.provider?.cacheState,
+      mockMode: draft.provider?.mockMode,
+      publishAfterCreate
+    });
+
+    if (publishResult.nextPostUrl) {
+      return;
+    }
   }
 
   async function rejectDraft() {
@@ -252,22 +473,22 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
 
     const rejected = draft;
     setDraft(null);
-    setStatus("AI draft dismissed. You can still use the standard generator.");
-    await fetch("/api/events/batch", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        events: [
-          {
-            name: "ai_draft_rejected",
-            props: {
-              generationMode: rejected.generationMode,
-              fallbackReason: rejected.fallbackReason ?? null
-            }
-          }
-        ]
-      })
-    }).catch(() => undefined);
+    setStep("location_resolved");
+    setStatusContext({ resolution: "resolved", generationMode: rejected.generationMode, fallbackReason: rejected.fallbackReason ?? null });
+    await trackClientEvents([
+      {
+        name: "ai_draft_rejected",
+        props: {
+          generationMode: rejected.generationMode,
+          fallbackReason: rejected.fallbackReason ?? null,
+          placeResolved: true,
+          cacheState: rejected.provider?.cacheState ?? "miss",
+          signedIn: null,
+          days: pref.days,
+          publishAfterCreate
+        }
+      }
+    ]);
   }
 
   return (
@@ -276,18 +497,10 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
         <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Create Personalized Itinerary</h2>
         <p className="mt-1 text-sm text-slate-500">Use social context + preferences to draft, review, and optionally publish.</p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
-            Parse
-          </span>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
-            Draft
-          </span>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
-            Review
-          </span>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">
-            Publish
-          </span>
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Parse</span>
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Draft</span>
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Review</span>
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Publish</span>
         </div>
       </div>
 
@@ -338,7 +551,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
                 <option value="packed">Packed</option>
               </select>
 
-              <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={visibility} onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "UNLISTED")}>
+              <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={visibility} onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "UNLISTED") }>
                 <option value="PUBLIC">Public post</option>
                 <option value="UNLISTED">Unlisted post</option>
               </select>
@@ -385,6 +598,16 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
         <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
           <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Location signals</h3>
 
+          {mockModeActive ? (
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-slate-700">
+              <p className="inline-flex items-center gap-2 font-semibold text-primary">
+                <Info className="h-4 w-4" />
+                Mock place mode active
+              </p>
+              <p className="mt-1">Local demo place data is powering this create flow instead of the live provider.</p>
+            </div>
+          ) : null}
+
           {hints.length ? (
             <div className="flex flex-wrap gap-2">
               {hints.map((hint) => (
@@ -414,7 +637,11 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
                     type="radio"
                     name="location"
                     checked={selectedPlaceId === suggestion.placeId}
-                    onChange={() => setSelectedPlaceId(suggestion.placeId)}
+                    onChange={() => {
+                      setSelectedPlaceId(suggestion.placeId);
+                      setStep("location_resolved");
+                      setStatusContext((current) => ({ ...current, resolution: "ambiguous" }));
+                    }}
                   />
                   {suggestion.text}
                 </label>
@@ -435,9 +662,8 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
               </div>
 
               <p className="text-xs text-slate-600">{draft.draft.summary}</p>
-              {draft.fallbackReason ? (
-                <p className="text-xs text-amber-700">Fallback reason: {draft.fallbackReason.replaceAll("_", " ")}</p>
-              ) : null}
+              {draft.fallbackReason ? <p className="text-xs text-amber-700">Fallback reason: {reasonCopy(draft.fallbackReason)}</p> : null}
+              {draft.provider?.cacheState === "stale" ? <p className="text-xs text-amber-700">Destination data came from stale cache because the live provider was unavailable.</p> : null}
 
               <div className="space-y-3">
                 {draft.draft.days.map((day) => (
@@ -455,9 +681,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
                         <div key={`${day.dayIndex}-${item.placeId}`} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-sm font-semibold text-slate-800">{item.name}</p>
-                            <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">
-                              {item.category}
-                            </span>
+                            <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">{item.category}</span>
                           </div>
                           <p className="mt-1 text-xs text-slate-500">{item.rationale}</p>
                         </div>
@@ -497,7 +721,14 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
               </a>
             </p>
           ) : null}
-          {status ? <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">{status}</p> : null}
+          {statusMessage ? (
+            <p className={`rounded-lg border px-3 py-2 text-xs ${step === "degraded" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-500"}`}>
+              <span className="inline-flex items-center gap-2 font-medium">
+                {step === "degraded" ? <AlertTriangle className="h-3.5 w-3.5" /> : <Info className="h-3.5 w-3.5 text-primary" />}
+                {statusMessage}
+              </span>
+            </p>
+          ) : null}
         </div>
       </div>
     </Card>
