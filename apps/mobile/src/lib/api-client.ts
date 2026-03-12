@@ -12,11 +12,21 @@ type RequestOptions = {
   retries?: number;
 };
 
-class ApiRequestError extends Error {
+type ApiErrorPayload = {
+  error?: string;
+  code?: string;
+};
+
+export class MobileApiError extends Error {
   retryable: boolean;
-  constructor(message: string, retryable: boolean) {
+  code?: string;
+  status?: number;
+
+  constructor(message: string, retryable: boolean, options?: { code?: string; status?: number }) {
     super(message);
     this.retryable = retryable;
+    this.code = options?.code;
+    this.status = options?.status;
   }
 }
 
@@ -32,7 +42,7 @@ function shouldRetry(status: number) {
   return status === 429 || status >= 500;
 }
 
-function parseJson<T>(text: string): T | { error?: string } {
+function parseJson<T>(text: string): T | ApiErrorPayload {
   if (!text) return {} as T;
   return JSON.parse(text) as T | { error?: string };
 }
@@ -112,23 +122,29 @@ export function createMobileApiClient(tokens: TokenBridge) {
         if (response.status === 401 && !hasRetriedAuth && current?.refreshToken) {
           const next = await refreshTokens();
           if (!next) {
-            throw new ApiRequestError((payload as { error?: string }).error || "Unauthorized", false);
+            throw new MobileApiError((payload as ApiErrorPayload).error || "Unauthorized", false, {
+              code: (payload as ApiErrorPayload).code,
+              status: response.status
+            });
           }
           return request<T>(path, init, requestOptions, true);
         }
 
         if (!response.ok) {
-          const message = (payload as { error?: string }).error || `HTTP ${response.status}`;
+          const message = (payload as ApiErrorPayload).error || `HTTP ${response.status}`;
           if (attempt < retries && shouldRetry(response.status)) {
             await sleep(300 * (attempt + 1));
             continue;
           }
-          throw new ApiRequestError(message, false);
+          throw new MobileApiError(message, false, {
+            code: (payload as ApiErrorPayload).code,
+            status: response.status
+          });
         }
 
         return payload as T;
       } catch (error) {
-        if (attempt < retries && (!(error instanceof ApiRequestError) || error.retryable)) {
+        if (attempt < retries && (!(error instanceof MobileApiError) || error.retryable)) {
           await sleep(300 * (attempt + 1));
           continue;
         }

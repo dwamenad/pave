@@ -14,6 +14,8 @@ import * as Sharing from "expo-sharing";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ErrorState, LoadingState } from "@/src/components/ui-states";
+import { MobileApiError } from "@/src/lib/api-client";
+import { getMobileErrorCopy } from "@/src/lib/mobile-error-copy";
 import { resolveApiBaseUrl } from "@/src/lib/api-client";
 import { useMobileApiClient } from "@/src/lib/use-mobile-api-client";
 import { loadMobileTokens } from "@/src/lib/secure-token-store";
@@ -134,8 +136,11 @@ export default function TripDetailScreen() {
       });
 
       if (!response.ok) {
-        const message = await response.text();
-        throw new Error(message || "Failed to export PDF");
+        const payload = (await response.json().catch(() => ({}))) as { error?: string; code?: string };
+        throw new MobileApiError(payload.error || "Failed to export PDF", false, {
+          code: payload.code,
+          status: response.status
+        });
       }
 
       const bytes = await response.arrayBuffer();
@@ -172,7 +177,11 @@ export default function TripDetailScreen() {
         action: "export_pdf",
         tripId: tripQuery.data?.trip.id
       });
-      Alert.alert("PDF export failed", "Try again in a moment.");
+      const copy = getMobileErrorCopy(error, {
+        title: "PDF export unavailable",
+        message: "Try again in a moment."
+      });
+      Alert.alert(copy.title, copy.message);
     }
   });
 

@@ -5,12 +5,16 @@ import { useMutation } from "@tanstack/react-query";
 import { useMobileApiClient } from "@/src/lib/use-mobile-api-client";
 import { EmptyState, ErrorState } from "@/src/components/ui-states";
 import { trackMobileError, trackMobileEvent } from "@/src/lib/mobile-analytics";
+import { getMobileErrorCode, getMobileErrorCopy } from "@/src/lib/mobile-error-copy";
 
 type ParseResponse = {
   hints: string[];
   resolved?: { placeId: string; text: string };
   ambiguous: Array<{ placeId: string; text: string }>;
   metadata: Array<{ title?: string; url: string }>;
+  resolution?: "resolved" | "ambiguous" | "unresolved" | "degraded";
+  code?: string;
+  mockMode?: boolean;
   error?: string;
 };
 
@@ -28,6 +32,7 @@ type TripCreateResponse = {
     id: string;
     slug: string;
   };
+  code?: string;
   error?: string;
 };
 
@@ -35,6 +40,7 @@ type PostCreateResponse = {
   post?: {
     id: string;
   };
+  code?: string;
   error?: string;
 };
 
@@ -47,9 +53,11 @@ export default function CreateScreen() {
   const [suggestions, setSuggestions] = useState<Array<{ placeId: string; text: string }>>([]);
   const [selectedPlaceId, setSelectedPlaceId] = useState("");
   const [status, setStatus] = useState<string>("");
+  const [statusTone, setStatusTone] = useState<"info" | "success" | "warning">("info");
   const [publish, setPublish] = useState(true);
   const [visibility, setVisibility] = useState<"PUBLIC" | "UNLISTED">("PUBLIC");
   const [error, setError] = useState<string | null>(null);
+  const [mockModeActive, setMockModeActive] = useState(false);
 
   const parsedLinks = useMemo(
     () =>
@@ -66,19 +74,40 @@ export default function CreateScreen() {
     onSuccess: (data) => {
       setError(null);
       setHints(data.hints || []);
+      setMockModeActive(Boolean(data.mockMode));
       if (data.resolved) {
         setSuggestions([data.resolved]);
         setSelectedPlaceId(data.resolved.placeId);
-        setStatus(`Resolved: ${data.resolved.text}`);
+        setStatus(`Destination resolved: ${data.resolved.text}. Review it, then use the standard generator.`);
+        setStatusTone("success");
         return;
       }
 
       setSuggestions(data.ambiguous || []);
       setSelectedPlaceId(data.ambiguous?.[0]?.placeId || "");
-      setStatus(data.ambiguous?.length ? "Select a destination suggestion." : "No clear location found.");
+      if (data.ambiguous?.length) {
+        setStatus("We found a few likely destinations. Pick the best match before building the trip.");
+        setStatusTone("info");
+        return;
+      }
+
+      if (data.resolution === "degraded") {
+        setStatus(getMobileErrorCopy({ code: data.code }).message);
+        setStatusTone("warning");
+        return;
+      }
+
+      setStatus("No clear destination yet. Add a city, neighborhood, or another source link and try again.");
+      setStatusTone("warning");
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Failed to parse social input");
+      const copy = getMobileErrorCopy(err, {
+        title: "Parse unavailable",
+        message: "We couldn't parse a destination from this input right now."
+      });
+      setError(copy.message);
+      setStatus(copy.message);
+      setStatusTone("warning");
       void trackMobileError(api, err, { screen: "create", action: "parse" });
     }
   });
@@ -89,13 +118,15 @@ export default function CreateScreen() {
         throw new Error("Choose a location first.");
       }
 
-      setStatus("Loading place details...");
+      setStatus("Checking the selected destination...");
+      setStatusTone("info");
       const details = await api.get<PlaceDetailsResponse>(`/api/places/details?placeId=${encodeURIComponent(selectedPlaceId)}`);
       if (!details.place) {
         throw new Error("Place details unavailable");
       }
 
-      setStatus("Generating trip...");
+      setStatus("Using the standard generator to build an itinerary...");
+      setStatusTone("info");
       const tripData = await api.post<TripCreateResponse>("/api/trips", {
         placeId: selectedPlaceId,
         title: `${details.place.name} Social Plan`,
@@ -125,7 +156,8 @@ export default function CreateScreen() {
         };
       }
 
-      setStatus("Publishing post...");
+      setStatus("Publishing the trip to your feed...");
+      setStatusTone("info");
       const postData = await api.post<PostCreateResponse>("/api/posts", {
         tripId: tripData.trip.id,
         caption,
@@ -156,6 +188,7 @@ export default function CreateScreen() {
     onSuccess: (result) => {
       setError(null);
       setStatus(result.postId ? "Trip created and published." : "Trip created.");
+      setStatusTone("success");
       if (result.postId) {
         router.push(`/post/${result.postId}`);
       } else {
@@ -163,7 +196,18 @@ export default function CreateScreen() {
       }
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Failed to create itinerary");
+      const copy = getMobileErrorCopy(err, {
+        title: "Create unavailable",
+        message: "We couldn't finish building this itinerary right now."
+      });
+      const code = getMobileErrorCode(err);
+      setError(copy.message);
+      setStatus(
+        code === "invalid_media_url"
+          ? copy.message
+          : `${copy.message}${publish ? " You can disable publish and save the trip first." : ""}`
+      );
+      setStatusTone("warning");
       void trackMobileError(api, err, { screen: "create", action: "build" });
     }
   });
@@ -173,7 +217,7 @@ export default function CreateScreen() {
       <View style={{ borderRadius: 14, borderWidth: 1, borderColor: "#e2e8f0", backgroundColor: "#fff", padding: 14 }}>
         <Text style={{ fontSize: 24, fontWeight: "800", color: "#0f172a" }}>Create from Social</Text>
         <Text style={{ marginTop: 4, color: "#64748b" }}>
-          Parse links and caption, then generate and publish in one flow.
+          Parse links and caption, then review and build a trip in one flow.
         </Text>
 
         <Text style={{ marginTop: 10, color: "#334155", fontWeight: "700" }}>Caption</Text>
@@ -212,6 +256,22 @@ export default function CreateScreen() {
           }}
         />
 
+        <View
+          style={{
+            marginTop: 10,
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: "#d6ecf3",
+            backgroundColor: "#f0f9ff",
+            paddingHorizontal: 10,
+            paddingVertical: 9
+          }}
+        >
+          <Text style={{ color: "#0c4a6e", fontSize: 12, lineHeight: 18 }}>
+            Published posts currently support external http(s) media URLs only. Native media uploads are not available on mobile yet.
+          </Text>
+        </View>
+
         <View style={{ marginTop: 12, flexDirection: "row", gap: 8 }}>
           <Pressable
             onPress={() => parseMutation.mutate()}
@@ -226,7 +286,7 @@ export default function CreateScreen() {
             style={{ borderRadius: 10, backgroundColor: "#0ea5e9", paddingHorizontal: 12, paddingVertical: 10 }}
           >
             <Text style={{ color: "#fff", fontWeight: "700" }}>
-              {createMutation.isPending ? "Building..." : "Generate + Publish"}
+              {createMutation.isPending ? "Building..." : publish ? "Use Standard Generator" : "Generate Trip"}
             </Text>
           </Pressable>
         </View>
@@ -285,8 +345,22 @@ export default function CreateScreen() {
 
       {error ? <ErrorState message={error} /> : null}
       {status ? (
-        <View style={{ borderRadius: 10, borderWidth: 1, borderColor: "#e2e8f0", backgroundColor: "#fff", padding: 10 }}>
+        <View
+          style={{
+            borderRadius: 10,
+            borderWidth: 1,
+            borderColor: statusTone === "warning" ? "#fcd34d" : statusTone === "success" ? "#86efac" : "#e2e8f0",
+            backgroundColor: statusTone === "warning" ? "#fffbeb" : statusTone === "success" ? "#f0fdf4" : "#fff",
+            padding: 10,
+            gap: 4
+          }}
+        >
           <Text style={{ color: "#334155" }}>{status}</Text>
+          {mockModeActive ? (
+            <Text style={{ color: "#64748b", fontSize: 12 }}>
+              Mock place mode is active in this environment, so destination results may be demo data.
+            </Text>
+          ) : null}
         </View>
       ) : null}
     </ScrollView>

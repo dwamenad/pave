@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/alt-text */
 import { useEffect, useMemo, useState } from "react";
-import { Image, Pressable, ScrollView, Share, Text, View } from "react-native";
+import { Alert, Image, Linking, Pressable, ScrollView, Share, Text, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -9,6 +9,7 @@ import { EmptyState, ErrorState, LoadingState } from "@/src/components/ui-states
 import { useMobileApiClient } from "@/src/lib/use-mobile-api-client";
 import { useMobileAuth } from "@/src/auth/mobile-auth-context";
 import { trackMobileError, trackMobileEvent } from "@/src/lib/mobile-analytics";
+import { resolveApiBaseUrl } from "@/src/lib/api-client";
 
 type ProfileScreenProps = {
   initialUsername?: string;
@@ -72,6 +73,11 @@ export function ProfileScreen({ initialUsername }: ProfileScreenProps) {
 
   const profile = profileQuery.data;
   const items = useMemo(() => profile?.items ?? [], [profile?.items]);
+  const trustBaseUrl = resolveApiBaseUrl();
+
+  async function openTrustPath(path: string) {
+    await Linking.openURL(`${trustBaseUrl}${path}`);
+  }
 
   useEffect(() => {
     if (!meQuery.error && !profileQuery.error) return;
@@ -131,7 +137,12 @@ export function ProfileScreen({ initialUsername }: ProfileScreenProps) {
           accessibilityLabel={isMe ? "Settings" : "More options"}
           onPress={() => {
             if (isMe) {
-              // Settings route can be connected later.
+              Alert.alert("Trust & support", "Open the latest Pave support and policy pages.", [
+                { text: "Support", onPress: () => void openTrustPath("/support") },
+                { text: "Privacy", onPress: () => void openTrustPath("/privacy") },
+                { text: "Terms", onPress: () => void openTrustPath("/terms") },
+                { text: "Cancel", style: "cancel" }
+              ]);
               return;
             }
           }}
