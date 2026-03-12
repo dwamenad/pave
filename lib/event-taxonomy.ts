@@ -1,4 +1,7 @@
 export const TRACKED_EVENT_NAMES = [
+  "start_create_flow",
+  "complete_parse_social",
+  "complete_trip_create",
   "view_feed",
   "view_post",
   "save_post",
@@ -7,6 +10,7 @@ export const TRACKED_EVENT_NAMES = [
   "share_trip",
   "comment_post",
   "follow_user",
+  "invite_collaborator",
   "mobile_error",
   "ai_draft_requested",
   "ai_draft_completed",
