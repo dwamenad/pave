@@ -1,5 +1,6 @@
 import type { NearbySearchInput, PlaceCard, PlaceDetails, PlaceSuggestion } from "@/lib/types";
 import type { PlacesProvider } from "@/lib/providers/types";
+import { PlacesProviderError } from "@/lib/providers/types";
 import { env } from "@/lib/env";
 
 const API_BASE = "https://places.googleapis.com/v1";
@@ -28,7 +29,7 @@ function normalizePlace(p: any): PlaceCard {
 
 async function placesFetch(path: string, init: RequestInit & { fieldMask?: string } = {}) {
   if (!env.GOOGLE_MAPS_API_KEY_SERVER) {
-    throw new Error("Missing GOOGLE_MAPS_API_KEY_SERVER");
+    throw new PlacesProviderError("provider_misconfigured", "Missing GOOGLE_MAPS_API_KEY_SERVER");
   }
 
   const headers = new Headers(init.headers);
@@ -46,7 +47,26 @@ async function placesFetch(path: string, init: RequestInit & { fieldMask?: strin
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(`Google Places API error: ${response.status} ${text}`);
+    const normalizedText = text.toLowerCase();
+    let code: PlacesProviderError["code"] = "provider_unavailable";
+
+    if (response.status === 400) {
+      code = "invalid_request";
+    } else if (response.status === 401 || response.status === 403) {
+      code = normalizedText.includes("api_key_invalid") || normalizedText.includes("api key not valid")
+        ? "provider_misconfigured"
+        : "provider_unavailable";
+    } else if (response.status === 404) {
+      code = "no_results";
+    } else if (response.status === 429) {
+      code = "rate_limited";
+    } else if (response.status >= 500) {
+      code = "provider_unavailable";
+    }
+
+    throw new PlacesProviderError(code, `Google Places API error: ${response.status} ${text}`, {
+      status: response.status
+    });
   }
 
   return response.json();
@@ -78,7 +98,11 @@ export class GooglePlacesProvider implements PlacesProvider {
         "id,displayName,location,rating,userRatingCount,priceLevel,currentOpeningHours,formattedAddress,types,photos"
     });
 
-    return normalizePlace(data);
+    const place = normalizePlace(data);
+    if (!place.placeId) {
+      throw new PlacesProviderError("no_results", `No canonical place found for ${placeId}`);
+    }
+    return place;
   }
 
   async nearbySearch(input: NearbySearchInput): Promise<PlaceDetails[]> {
