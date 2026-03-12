@@ -87,7 +87,7 @@ export default async function ProfilePage({
           icon={<Sparkles className="h-5 w-5 text-primary" />}
           action={
             activeItems.length ? (
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{activeItems.length} cards</span>
+              <span className="rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">{activeItems.length} cards</span>
             ) : null
           }
         />

@@ -33,6 +33,15 @@ The setup script will:
 - Mobile only: `pnpm mobile:dev`
 - Web + mobile together: `pnpm dev:all`
 
+### Theme preference
+Pave now supports both light and dark mode in the web app.
+
+- the header theme toggle lets you switch between them manually
+- the app defaults to your system theme on first load
+- your browser keeps the selected theme for later visits
+
+When you are doing visual QA, it is worth checking both themes on the routes you touched instead of assuming the semantic tokens carried everything automatically.
+
 ## What good local state looks like
 Once Docker Postgres is up and the seed has run cleanly, you should be able to load seeded surfaces immediately.
 

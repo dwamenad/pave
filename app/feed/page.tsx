@@ -255,7 +255,7 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
           </section>
 
           <RailCard title="Safety" icon={<ShieldCheck className="h-4 w-4 text-primary" />}>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-muted-foreground">
               Report harmful posts in detail view. Blocked users are hidden from your feed.
             </p>
           </RailCard>

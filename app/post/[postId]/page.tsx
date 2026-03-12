@@ -26,12 +26,12 @@ export default async function PostDetailPage({ params }: { params: { postId: str
 
   return (
     <div className="space-y-6">
-      <nav className="flex items-center gap-2 text-sm text-slate-500">
+      <nav className="flex items-center gap-2 text-sm text-muted-foreground">
         <Link href="/" className="hover:text-primary">Home</Link>
         <span>/</span>
         <Link href="/feed" className="hover:text-primary">Feed</Link>
         <span>/</span>
-        <span className="font-medium text-slate-700">{post.destinationLabel || post.trip.title}</span>
+        <span className="font-medium text-foreground">{post.destinationLabel || post.trip.title}</span>
       </nav>
       <PostDetailClient initialPost={post} />
     </div>

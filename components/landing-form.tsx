@@ -84,7 +84,7 @@ export function LandingForm() {
   }
 
   return (
-    <Card className="space-y-8 rounded-3xl border-slate-200 p-6 shadow-sm md:p-8">
+    <Card className="space-y-8 rounded-3xl border-border p-6 shadow-sm md:p-8">
       <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-4">
           <div>
