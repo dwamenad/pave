@@ -18,6 +18,23 @@ The product combines:
 - **Planning utility** (maps, nearby discovery, itinerary generation, trip editing)
 - **Social product** (posts, profiles, likes/saves/comments, remix, moderation)
 
+## 1A) Current Milestone Snapshot (`v0.2.0`)
+
+The current tagged baseline is `v0.2.0` (`preapi-hardening-v1`), which captures the repo after the pre-API hardening pass.
+
+What shipped in this milestone:
+- a centralized place-service boundary so app code no longer has to invent its own provider/fallback rules
+- explicit provider reason codes plus a local-only mock places mode for development and demos
+- cache metadata and stale-if-error handling for place and nearby lookups
+- clearer create-flow state handling with machine-readable degraded/fallback outcomes
+- stronger nearby UX for empty, degraded, stale, and mock-backed states
+- expanded funnel instrumentation for parse, create, AI draft, publish, and invite actions
+- richer seed data with a believable social graph and remixable published trips
+- contributor documentation for the Docker-backed local database path
+- smoke-tested screenshots and docs updates reflecting the current live local product state
+
+Operationally, `v0.2.0` is the point where the local product loop is much easier to validate before introducing additional provider complexity.
+
 ---
 
 ## 2) Problem Statement
