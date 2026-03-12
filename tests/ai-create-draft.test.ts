@@ -95,9 +95,17 @@ function buildDeps(options?: {
       OPENAI_API_KEY: options?.apiKey ?? "test-key",
       OPENAI_RESPONSES_MODEL: "gpt-4.1-mini"
     },
-    placeDetails: async (placeId: string) => {
-      if (placeId === destination.placeId) return destination;
-      return nearbyPlaces.find((place) => place.placeId === placeId) ?? destination;
+    getPlaceDetails: async (placeId: string) => {
+      const place = placeId === destination.placeId ? destination : nearbyPlaces.find((item) => item.placeId === placeId) ?? destination;
+      return {
+        ok: true,
+        data: place,
+        degraded: false,
+        stale: false,
+        cacheState: "miss" as const,
+        fetchedAt: null,
+        mockMode: false
+      };
     },
     buildFallbackTripDraft: async () => fallbackDraft,
     getAiKnowledgeTool: () => options?.knowledgeTool ?? null,
