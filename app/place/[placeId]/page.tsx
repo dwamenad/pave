@@ -2,18 +2,23 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { MapPin } from "lucide-react";
 import { PlaceHubClient } from "@/components/place-hub-client";
-import { placesProvider } from "@/lib/providers";
+import { getPlaceDetails, searchNearbyPlaces } from "@/lib/server/place-service";
 
 export const dynamic = "force-dynamic";
 
 async function fetchCategory(lat: number, lng: number, type: string) {
-  return placesProvider.nearbySearch({ lat, lng, type, radiusMeters: 3000, minPrice: 2, maxPrice: 2 });
+  const result = await searchNearbyPlaces({ lat, lng, type, radiusMeters: 3000, minPrice: 2, maxPrice: 2 });
+  return result.data ?? [];
 }
 
 export default async function PlaceHubPage({ params }: { params: { placeId: string } }) {
-  let place;
+  let place: Awaited<ReturnType<typeof getPlaceDetails>>["data"] = null;
   try {
-    place = await placesProvider.placeDetails(params.placeId);
+    const result = await getPlaceDetails(params.placeId);
+    place = result.data;
+    if (!result.ok || !place) {
+      notFound();
+    }
   } catch {
     notFound();
   }
