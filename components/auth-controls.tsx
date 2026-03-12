@@ -39,10 +39,10 @@ export function AuthControls() {
         <PlusSquare className="h-4 w-4" />
         Create
       </Link>
-      <Link href="/feed" className="inline-flex h-9 items-center rounded-lg border bg-white px-3 text-xs font-semibold hover:bg-muted">
+      <Link href="/feed" className="inline-flex h-9 items-center rounded-lg border border-border bg-card px-3 text-xs font-semibold text-foreground hover:bg-muted">
         Feed
       </Link>
-      <Link href="/notifications" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border bg-white hover:bg-muted" title="Notifications">
+      <Link href="/notifications" className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-card text-foreground hover:bg-muted" title="Notifications">
         <Bell className="h-4 w-4" />
       </Link>
       <Button type="button" className="h-9 w-9 rounded-lg p-0" variant="ghost" onClick={() => signOut({ callbackUrl: "/" })}>

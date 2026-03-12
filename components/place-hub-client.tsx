@@ -99,7 +99,7 @@ export function PlaceHubClient({
               className={
                 category === value
                   ? "inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-white"
-                  : "inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-600 hover:border-primary hover:text-primary"
+                  : "inline-flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-semibold text-muted-foreground hover:border-primary hover:text-primary"
               }
               onClick={() => refreshCategory(value)}
               type="button"
@@ -110,13 +110,13 @@ export function PlaceHubClient({
           );
         })}
 
-        <select value={budget} onChange={(e) => setBudget(e.target.value as BudgetMode)} className="ml-auto rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+        <select value={budget} onChange={(e) => setBudget(e.target.value as BudgetMode)} className="ml-auto rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground">
           <option value="budget">Budget</option>
           <option value="mid">Mid</option>
           <option value="luxury">Luxury</option>
         </select>
 
-        <select value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+        <select value={radius} onChange={(e) => setRadius(Number(e.target.value))} className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground">
           <option value={2000}>2 km</option>
           <option value={3000}>3 km</option>
           <option value={5000}>5 km</option>
@@ -130,13 +130,13 @@ export function PlaceHubClient({
       </div>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[430px_minmax(0,1fr)]">
-        <aside className="max-h-[700px] space-y-3 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-3">
+        <aside className="max-h-[700px] space-y-3 overflow-y-auto rounded-2xl border border-border bg-muted/70 p-3">
           {activePlaces.length ? (
             activePlaces.map((place) => (
               <PlaceCard key={place.placeId} place={place} focused={focused === place.placeId} onClick={() => setFocused(place.placeId)} />
             ))
           ) : (
-            <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+            <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
               No places found. Try a different radius or category.
             </div>
           )}

@@ -144,20 +144,20 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
       <section className="space-y-10 lg:col-span-8">
-        <article className="space-y-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+        <article className="space-y-6 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div>
-            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-slate-900">
+            <h1 className="text-4xl font-extrabold leading-tight tracking-tight text-foreground">
               {post.trip.title}
             </h1>
-            <p className="mt-2 text-lg text-slate-600">{post.caption}</p>
+            <p className="mt-2 text-lg text-muted-foreground">{post.caption}</p>
           </div>
 
-          <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-tr from-cyan-100 via-sky-100 to-blue-100">
+          <div className="aspect-[16/9] overflow-hidden rounded-2xl border border-border bg-gradient-to-tr from-cyan-100 via-sky-100 to-blue-100 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
             {post.mediaUrl && /^https?:\/\//.test(post.mediaUrl) ? (
               <img alt={post.trip.title} className="h-full w-full object-cover" src={post.mediaUrl} />
             ) : (
               <div className="social-floating-gradient flex h-full items-end p-6">
-                <p className="inline-flex items-center gap-1 rounded-lg bg-white/80 px-3 py-2 text-sm font-semibold text-slate-800 backdrop-blur">
+                <p className="inline-flex items-center gap-1 rounded-lg bg-card/80 px-3 py-2 text-sm font-semibold text-foreground backdrop-blur">
                   <MapPin className="h-3.5 w-3.5 text-primary" />
                   {post.destinationLabel || post.trip.title}
                 </p>
@@ -173,7 +173,7 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
                 return (
                   <a
                     key={source.url}
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:border-primary hover:text-primary"
+                    className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:border-primary hover:text-primary"
                     href={source.url}
                     rel="noreferrer"
                     target="_blank"
@@ -187,37 +187,37 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
           ) : null}
         </article>
 
-        <section className="relative space-y-10 before:absolute before:bottom-4 before:left-[19px] before:top-4 before:w-[2px] before:bg-slate-200">
+        <section className="relative space-y-10 before:absolute before:bottom-4 before:left-[19px] before:top-4 before:w-[2px] before:bg-border">
           {dayPreview.map((day) => (
             <article key={day.id} className="relative pl-12">
-              <div className="absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 border-primary bg-white">
+              <div className="absolute left-0 top-1 z-10 flex h-10 w-10 items-center justify-center rounded-full border-4 border-primary bg-card">
                 <span className="text-xs font-bold text-primary">{String(day.dayIndex).padStart(2, "0")}</span>
               </div>
 
-              <div className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div className="space-y-4 rounded-2xl border border-border bg-card p-5 shadow-sm">
                 <div>
-                  <h3 className="text-xl font-bold text-slate-900">
+                  <h3 className="text-xl font-bold text-foreground">
                     Day {day.dayIndex}: {day.items[0]?.name || "Itinerary preview"}
                   </h3>
-                  <p className="text-sm text-slate-500">{distanceLabel(day.items.length)}</p>
+                  <p className="text-sm text-muted-foreground">{distanceLabel(day.items.length)}</p>
                 </div>
 
                 {day.items.length ? (
                   <div className="space-y-3">
                     {day.items.slice(0, 4).map((item) => (
-                      <div key={item.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                      <div key={item.id} className="rounded-xl border border-border bg-card p-4">
                         <p className="text-xs font-bold uppercase tracking-wide text-primary">{item.category}</p>
-                        <p className="text-base font-semibold text-slate-900">{item.name}</p>
-                        {item.notes ? <p className="mt-1 text-sm text-slate-600">{item.notes}</p> : null}
+                        <p className="text-base font-semibold text-foreground">{item.name}</p>
+                        {item.notes ? <p className="mt-1 text-sm text-muted-foreground">{item.notes}</p> : null}
                       </div>
                     ))}
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="h-28 rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100" />
-                      <div className="h-28 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100" />
+                      <div className="h-28 rounded-xl bg-gradient-to-br from-sky-100 to-cyan-100 dark:from-slate-900 dark:to-slate-800" />
+                      <div className="h-28 rounded-xl bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-slate-900 dark:to-slate-800" />
                     </div>
                   </div>
                 ) : (
-                  <div className="rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-500">
+                  <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
                     Activity details are available in the full trip view.
                   </div>
                 )}
@@ -240,13 +240,13 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
             <div>
               <p className="text-xs font-bold uppercase tracking-wider text-primary">Created by</p>
               {profileHref ? (
-                <Link href={profileHref} className="text-base font-bold text-slate-900 hover:text-primary">
+                <Link href={profileHref} className="text-base font-bold text-foreground hover:text-primary">
                   {post.author.name || post.author.username || "Traveler"}
                 </Link>
               ) : (
-                <p className="text-base font-bold text-slate-900">{post.author.name || "Traveler"}</p>
+                <p className="text-base font-bold text-foreground">{post.author.name || "Traveler"}</p>
               )}
-              <p className="text-xs text-slate-500">{post.counts.likes + post.counts.comments} total interactions</p>
+              <p className="text-xs text-muted-foreground">{post.counts.likes + post.counts.comments} total interactions</p>
             </div>
           </div>
 
@@ -262,45 +262,45 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
             type="button"
             onClick={toggleSave}
             disabled={pendingSave}
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-bold text-slate-700 hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-muted px-4 py-3 text-sm font-bold text-foreground hover:bg-muted/80 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Bookmark className={`h-4 w-4 ${saved ? "fill-primary text-primary" : ""}`} />
             {saved ? "Saved itinerary" : "Save itinerary"} ({saveCount})
           </button>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-slate-50 p-3">
-              <span className="block text-xs text-slate-500">Duration</span>
-              <span className="font-bold text-slate-900">{post.trip.daysCount || 1} Days</span>
+            <div className="rounded-xl bg-muted p-3">
+              <span className="block text-xs text-muted-foreground">Duration</span>
+              <span className="font-bold text-foreground">{post.trip.daysCount || 1} Days</span>
             </div>
-            <div className="rounded-xl bg-slate-50 p-3">
-              <span className="block text-xs text-slate-500">Comments</span>
-              <span className="font-bold text-slate-900">{post.counts.comments}</span>
+            <div className="rounded-xl bg-muted p-3">
+              <span className="block text-xs text-muted-foreground">Comments</span>
+              <span className="font-bold text-foreground">{post.counts.comments}</span>
             </div>
           </div>
 
           <section>
-            <h3 className="mb-3 flex items-center justify-between text-sm font-bold text-slate-900">
+            <h3 className="mb-3 flex items-center justify-between text-sm font-bold text-foreground">
               <span className="inline-flex items-center gap-2">
                 <MessageCircle className="h-4 w-4 text-primary" />
                 Comments
               </span>
-              <span className="text-xs font-normal text-slate-400">{post.counts.comments} replies</span>
+              <span className="text-xs font-normal text-muted-foreground">{post.counts.comments} replies</span>
             </h3>
 
             <div className="max-h-56 space-y-2 overflow-y-auto pr-1">
               {post.comments.map((comment) => (
-                <article key={comment.id} className="rounded-xl bg-slate-50 p-3">
-                  <p className="text-xs font-bold text-slate-900">@{comment.author.username || comment.author.name || "traveler"}</p>
-                  <p className="mt-1 text-xs text-slate-600">{comment.body}</p>
+                <article key={comment.id} className="rounded-xl bg-muted p-3">
+                  <p className="text-xs font-bold text-foreground">@{comment.author.username || comment.author.name || "traveler"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{comment.body}</p>
                 </article>
               ))}
-              {!post.comments.length ? <p className="text-xs text-slate-500">No comments yet.</p> : null}
+              {!post.comments.length ? <p className="text-xs text-muted-foreground">No comments yet.</p> : null}
             </div>
 
             <div className="mt-3 flex gap-2">
               <Input
-                className="h-10 rounded-xl border-slate-200 bg-slate-100"
+                className="h-10 rounded-xl bg-muted"
                 placeholder="Add a comment..."
                 value={commentText}
                 onChange={(e) => setCommentText(e.target.value)}
@@ -328,7 +328,7 @@ export function PostDetailClient({ initialPost }: { initialPost: PostDetail }) {
               type="button"
               onClick={sharePost}
               disabled={pendingShare}
-              className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-3 inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-xs font-semibold text-muted-foreground hover:border-primary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <Share2 className="h-3.5 w-3.5" />
               Share itinerary

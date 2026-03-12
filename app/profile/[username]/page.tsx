@@ -51,10 +51,10 @@ export default async function ProfilePage({
             )}
 
             <div>
-              <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">{displayName}</h1>
-              <p className="text-sm text-slate-500">@{profile.user.username || "traveler"}</p>
-              {profile.user.bio ? <p className="mt-2 max-w-lg text-sm leading-relaxed text-slate-600">{profile.user.bio}</p> : null}
-              <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-slate-500 md:justify-start">
+              <h1 className="text-3xl font-extrabold tracking-tight text-foreground">{displayName}</h1>
+              <p className="text-sm text-muted-foreground">@{profile.user.username || "traveler"}</p>
+              {profile.user.bio ? <p className="mt-2 max-w-lg text-sm leading-relaxed text-muted-foreground">{profile.user.bio}</p> : null}
+              <div className="mt-3 flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground md:justify-start">
                 <span className="inline-flex items-center gap-1">
                   <CalendarDays className="h-3.5 w-3.5" />
                   {joinedLabel}
@@ -93,13 +93,13 @@ export default async function ProfilePage({
         />
 
         <div className="sticky top-[4.75rem] z-30 -mx-1 rounded-xl bg-background/95 px-1 backdrop-blur">
-          <div className="flex items-center gap-6 border-b border-slate-200 px-2">
+          <div className="flex items-center gap-6 border-b border-border px-2">
             <Link
               href={`/profile/${params.username}?tab=posts`}
               className={
                 activeTab === "posts"
-                  ? "inline-flex items-center gap-2 border-b-[3px] border-primary py-3 text-sm font-bold text-slate-900"
-                  : "inline-flex items-center gap-2 border-b-[3px] border-transparent py-3 text-sm font-bold text-slate-500 hover:text-slate-700"
+                  ? "inline-flex items-center gap-2 border-b-[3px] border-primary py-3 text-sm font-bold text-foreground"
+                  : "inline-flex items-center gap-2 border-b-[3px] border-transparent py-3 text-sm font-bold text-muted-foreground hover:text-foreground"
               }
             >
               <Rss className="h-4 w-4" />
@@ -109,8 +109,8 @@ export default async function ProfilePage({
               href={`/profile/${params.username}?tab=saved`}
               className={
                 activeTab === "saved"
-                  ? "inline-flex items-center gap-2 border-b-[3px] border-primary py-3 text-sm font-bold text-slate-900"
-                  : "inline-flex items-center gap-2 border-b-[3px] border-transparent py-3 text-sm font-bold text-slate-500 hover:text-slate-700"
+                  ? "inline-flex items-center gap-2 border-b-[3px] border-primary py-3 text-sm font-bold text-foreground"
+                  : "inline-flex items-center gap-2 border-b-[3px] border-transparent py-3 text-sm font-bold text-muted-foreground hover:text-foreground"
               }
             >
               <Bookmark className="h-4 w-4" />

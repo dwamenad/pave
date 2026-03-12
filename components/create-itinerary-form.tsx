@@ -492,22 +492,22 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
   }
 
   return (
-    <Card className="space-y-8 rounded-3xl border-slate-200 p-6 shadow-sm md:p-8">
+    <Card className="space-y-8 rounded-3xl border-border p-6 shadow-sm md:p-8">
       <div>
-        <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Create Personalized Itinerary</h2>
-        <p className="mt-1 text-sm text-slate-500">Use social context + preferences to draft, review, and optionally publish.</p>
+        <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Create Personalized Itinerary</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Use social context + preferences to draft, review, and optionally publish.</p>
         <div className="mt-4 flex flex-wrap gap-2">
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Parse</span>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Draft</span>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Review</span>
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-slate-600">Publish</span>
+          <span className="rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Parse</span>
+          <span className="rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Draft</span>
+          <span className="rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Review</span>
+          <span className="rounded-full border border-border bg-muted px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Publish</span>
         </div>
       </div>
 
       <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-5">
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Caption / context</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Caption / context</label>
             <Textarea
               className="min-h-24 rounded-xl"
               value={caption}
@@ -517,7 +517,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Social links (1-5)</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Social links (1-5)</label>
             <Textarea
               className="min-h-24 rounded-xl"
               value={linksInput}
@@ -526,43 +526,43 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
             />
           </div>
 
-          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
-            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <div className="space-y-3 rounded-xl border border-border bg-muted/70 p-4">
+            <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               Trip preferences
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
-              <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={pref.budget} onChange={(e) => setPref((p) => ({ ...p, budget: e.target.value as PreferenceState["budget"] }))}>
+              <select className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground" value={pref.budget} onChange={(e) => setPref((p) => ({ ...p, budget: e.target.value as PreferenceState["budget"] }))}>
                 <option value="budget">Budget</option>
                 <option value="mid">Mid</option>
                 <option value="luxury">Luxury</option>
               </select>
 
-              <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={pref.days} onChange={(e) => setPref((p) => ({ ...p, days: Number(e.target.value) as PreferenceState["days"] }))}>
+              <select className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground" value={pref.days} onChange={(e) => setPref((p) => ({ ...p, days: Number(e.target.value) as PreferenceState["days"] }))}>
                 <option value={1}>1 day</option>
                 <option value={2}>2 days</option>
                 <option value={3}>3 days</option>
               </select>
 
-              <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={pref.pace} onChange={(e) => setPref((p) => ({ ...p, pace: e.target.value as PreferenceState["pace"] }))}>
+              <select className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground" value={pref.pace} onChange={(e) => setPref((p) => ({ ...p, pace: e.target.value as PreferenceState["pace"] }))}>
                 <option value="slow">Slow</option>
                 <option value="balanced">Balanced</option>
                 <option value="packed">Packed</option>
               </select>
 
-              <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={visibility} onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "UNLISTED") }>
+              <select className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground" value={visibility} onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "UNLISTED") }>
                 <option value="PUBLIC">Public post</option>
                 <option value="UNLISTED">Unlisted post</option>
               </select>
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2">
-              <Input className="rounded-lg bg-white" placeholder="Vibe tags (comma separated)" value={pref.vibeTags} onChange={(e) => setPref((p) => ({ ...p, vibeTags: e.target.value }))} />
-              <Input className="rounded-lg bg-white" placeholder="Dietary prefs (optional)" value={pref.dietary} onChange={(e) => setPref((p) => ({ ...p, dietary: e.target.value }))} />
+              <Input className="rounded-lg" placeholder="Vibe tags (comma separated)" value={pref.vibeTags} onChange={(e) => setPref((p) => ({ ...p, vibeTags: e.target.value }))} />
+              <Input className="rounded-lg" placeholder="Dietary prefs (optional)" value={pref.dietary} onChange={(e) => setPref((p) => ({ ...p, dietary: e.target.value }))} />
             </div>
 
-            <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+            <label className="inline-flex items-center gap-2 text-sm text-muted-foreground">
               <input type="checkbox" checked={publishAfterCreate} onChange={(e) => setPublishAfterCreate(e.target.checked)} />
               Publish post after creating trip
             </label>
@@ -586,7 +586,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
             {tripUrl ? (
               <a
                 href={tripUrl}
-                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-bold text-slate-700 hover:border-primary hover:text-primary"
+                className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-bold text-foreground hover:border-primary hover:text-primary"
               >
                 Open trip
                 <ArrowRight className="h-4 w-4" />
@@ -595,11 +595,11 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
           </div>
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Location signals</h3>
+        <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Location signals</h3>
 
           {mockModeActive ? (
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-slate-700">
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-xs text-foreground">
               <p className="inline-flex items-center gap-2 font-semibold text-primary">
                 <Info className="h-4 w-4" />
                 Mock place mode active
@@ -617,11 +617,11 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-500">Detected hints appear here after parsing.</p>
+            <p className="text-sm text-muted-foreground">Detected hints appear here after parsing.</p>
           )}
 
           {metadataPreview.length ? (
-            <div className="space-y-1 rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">
+            <div className="space-y-1 rounded-lg border border-border bg-muted p-3 text-xs text-muted-foreground">
               {metadataPreview.map((meta) => (
                 <p key={meta.url}>Source: {meta.title || meta.url}</p>
               ))}
@@ -630,9 +630,9 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
 
           {suggestions.length ? (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-500">Location suggestions</p>
+              <p className="text-xs font-semibold text-muted-foreground">Location suggestions</p>
               {suggestions.map((suggestion) => (
-                <label key={suggestion.placeId} className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700">
+                <label key={suggestion.placeId} className="flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-2 text-sm text-foreground">
                   <input
                     type="radio"
                     name="location"
@@ -650,40 +650,40 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
           ) : null}
 
           {draft ? (
-            <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <div className="space-y-3 rounded-xl border border-border bg-muted/70 p-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Draft review</p>
-                  <h4 className="text-sm font-bold text-slate-900">{draft.draft.title}</h4>
+                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Draft review</p>
+                  <h4 className="text-sm font-bold text-foreground">{draft.draft.title}</h4>
                 </div>
                 <span className={`rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${draft.generationMode === "ai" ? "bg-primary/10 text-primary" : "bg-amber-100 text-amber-700"}`}>
                   {draft.generationMode}
                 </span>
               </div>
 
-              <p className="text-xs text-slate-600">{draft.draft.summary}</p>
+              <p className="text-xs text-muted-foreground">{draft.draft.summary}</p>
               {draft.fallbackReason ? <p className="text-xs text-amber-700">Fallback reason: {reasonCopy(draft.fallbackReason)}</p> : null}
               {draft.provider?.cacheState === "stale" ? <p className="text-xs text-amber-700">Destination data came from stale cache because the live provider was unavailable.</p> : null}
 
               <div className="space-y-3">
                 {draft.draft.days.map((day) => (
-                  <div key={day.dayIndex} className="rounded-lg border border-slate-200 bg-white p-3">
+                  <div key={day.dayIndex} className="rounded-lg border border-border bg-card p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Day {day.dayIndex}</p>
-                        <h5 className="text-sm font-bold text-slate-900">{day.title}</h5>
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Day {day.dayIndex}</p>
+                        <h5 className="text-sm font-bold text-foreground">{day.title}</h5>
                       </div>
                       <CheckCircle2 className="mt-0.5 h-4 w-4 text-primary" />
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">{day.summary}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{day.summary}</p>
                     <div className="mt-3 space-y-2">
                       {day.items.map((item) => (
-                        <div key={`${day.dayIndex}-${item.placeId}`} className="rounded-lg border border-slate-100 bg-slate-50 px-3 py-2">
+                        <div key={`${day.dayIndex}-${item.placeId}`} className="rounded-lg border border-border/60 bg-muted px-3 py-2">
                           <div className="flex items-center justify-between gap-2">
-                            <p className="text-sm font-semibold text-slate-800">{item.name}</p>
-                            <span className="rounded-full bg-slate-200 px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-slate-600">{item.category}</span>
+                            <p className="text-sm font-semibold text-foreground">{item.name}</p>
+                            <span className="rounded-full bg-secondary px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">{item.category}</span>
                           </div>
-                          <p className="mt-1 text-xs text-slate-500">{item.rationale}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">{item.rationale}</p>
                         </div>
                       ))}
                     </div>
@@ -706,7 +706,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
           ) : null}
 
           {tripUrl ? (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Trip:{" "}
               <a className="font-semibold text-primary underline" href={tripUrl}>
                 {tripUrl}
@@ -714,7 +714,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
             </p>
           ) : null}
           {postUrl ? (
-            <p className="text-sm text-slate-600">
+            <p className="text-sm text-muted-foreground">
               Post:{" "}
               <a className="font-semibold text-primary underline" href={postUrl}>
                 {postUrl}
@@ -722,7 +722,7 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
             </p>
           ) : null}
           {statusMessage ? (
-            <p className={`rounded-lg border px-3 py-2 text-xs ${step === "degraded" ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-500"}`}>
+            <p className={`rounded-lg border px-3 py-2 text-xs ${step === "degraded" ? "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200" : "border-border bg-muted text-muted-foreground"}`}>
               <span className="inline-flex items-center gap-2 font-medium">
                 {step === "degraded" ? <AlertTriangle className="h-3.5 w-3.5" /> : <Info className="h-3.5 w-3.5 text-primary" />}
                 {statusMessage}

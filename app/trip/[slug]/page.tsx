@@ -63,8 +63,8 @@ export default async function TripPage({
       <section className="social-card p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">{trip.title}</h1>
-            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground">{trip.title}</h1>
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
               <span className="inline-flex items-center gap-1">
                 <CalendarDays className="h-3.5 w-3.5" />
                 {trip.days.length} days
@@ -84,7 +84,7 @@ export default async function TripPage({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+          <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
             <Share2 className="h-3.5 w-3.5 text-primary" />
             Public + group share links available below
           </div>
@@ -95,21 +95,21 @@ export default async function TripPage({
         <div className="flex flex-wrap gap-2">
           <a
             href="#trip-builder-section"
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-primary hover:text-primary"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold text-foreground hover:border-primary hover:text-primary"
           >
             <MapPinned className="h-3.5 w-3.5" />
             Planner view
           </a>
           <a
             href="#trip-share-controls"
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-primary hover:text-primary"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold text-foreground hover:border-primary hover:text-primary"
           >
             <Share2 className="h-3.5 w-3.5" />
             Share links
           </a>
           <a
             href="#trip-social-actions"
-            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:border-primary hover:text-primary"
+            className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-card px-3 py-2 text-xs font-bold text-foreground hover:border-primary hover:text-primary"
           >
             <Vote className="h-3.5 w-3.5" />
             Remix + publish
@@ -128,7 +128,7 @@ export default async function TripPage({
 
         <aside className="space-y-4 xl:col-span-4">
           <div id="trip-share-controls" className="social-card p-4">
-            <h2 className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-900">
+            <h2 className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-foreground">
               <Share2 className="h-4 w-4 text-primary" />
               Share controls
             </h2>
@@ -136,7 +136,7 @@ export default async function TripPage({
           </div>
 
           <div id="trip-social-actions" className="social-card p-4">
-            <h2 className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-slate-900">
+            <h2 className="mb-3 inline-flex items-center gap-2 text-sm font-bold text-foreground">
               <Sparkles className="h-4 w-4 text-primary" />
               Social actions
             </h2>

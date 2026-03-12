@@ -15,9 +15,9 @@ export function SectionHeader({ title, subtitle, icon, action, className }: Prop
       <div>
         <div className="flex items-center gap-2">
           {icon}
-          <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">{title}</h2>
+          <h2 className="text-2xl font-extrabold tracking-tight text-foreground">{title}</h2>
         </div>
-        {subtitle ? <p className="mt-1 text-sm text-slate-500">{subtitle}</p> : null}
+        {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
       </div>
       {action ? <div>{action}</div> : null}
     </div>

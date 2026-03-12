@@ -72,7 +72,7 @@ export function TripSocialActions({ tripId, tripTitle }: { tripId: string; tripT
       <Input value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Post caption" className="rounded-lg" />
 
       <select
-        className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm"
+        className="w-full rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground"
         value={visibility}
         onChange={(e) => setVisibility(e.target.value as "PUBLIC" | "UNLISTED")}
       >
@@ -96,18 +96,18 @@ export function TripSocialActions({ tripId, tripTitle }: { tripId: string; tripT
       </div>
 
       {postUrl ? (
-        <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        <p className="rounded-lg border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
           Post: <a className="font-semibold text-primary underline" href={postUrl}>{postUrl}</a>
         </p>
       ) : null}
 
       {remixUrl ? (
-        <p className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500">
+        <p className="rounded-lg border border-border bg-muted px-3 py-2 text-xs text-muted-foreground">
           Remix: <a className="font-semibold text-primary underline" href={remixUrl}>{remixUrl}</a>
         </p>
       ) : null}
 
-      {status ? <p className="text-xs text-slate-500">{status}</p> : null}
+      {status ? <p className="text-xs text-muted-foreground">{status}</p> : null}
     </div>
   );
 }

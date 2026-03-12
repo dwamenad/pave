@@ -88,16 +88,16 @@ export function LandingForm() {
       <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-4">
           <div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-slate-900">Explore from links, then build in one click</h2>
-            <p className="mt-1 text-sm text-slate-500">
+            <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Explore from links, then build in one click</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
               Paste links and caption context, detect location hints, then jump into place discovery or go directly to create.
             </p>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Search city, landmark, or venue</label>
-            <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
-              <MapPin className="h-4 w-4 text-slate-400" />
+            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Search city, landmark, or venue</label>
+            <div className="theme-input-shell flex items-center gap-2 px-3">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
               <Input
                 className="border-0 px-0 focus:ring-0"
                 value={query}
@@ -108,7 +108,7 @@ export function LandingForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Social links (1-5)</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Social links (1-5)</label>
             <Textarea
               className="min-h-20 rounded-xl"
               value={linksInput}
@@ -118,7 +118,7 @@ export function LandingForm() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-wide text-slate-500">Caption or notes</label>
+            <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Caption or notes</label>
             <Textarea
               className="min-h-28 rounded-xl"
               value={socialInput}
@@ -149,8 +149,8 @@ export function LandingForm() {
           </div>
         </div>
 
-        <div className="space-y-3 rounded-2xl border border-slate-200 bg-slate-50 p-4">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500">Signal Preview</h3>
+        <div className="space-y-3 rounded-2xl border border-border bg-muted/70 p-4">
+          <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Signal Preview</h3>
 
           {parseResult?.hints?.length ? (
             <div className="flex flex-wrap gap-2">
@@ -161,16 +161,16 @@ export function LandingForm() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-500">Parse social text to see detected hints.</p>
+            <p className="text-sm text-muted-foreground">Parse social text to see detected hints.</p>
           )}
 
           {parseResult?.ambiguous?.length ? (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-500">Confirm intended location</p>
+              <p className="text-xs font-semibold text-muted-foreground">Confirm intended location</p>
               {parseResult.ambiguous.map((s) => (
                 <button
                   key={s.placeId}
-                  className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-700 hover:border-primary hover:text-primary"
+                  className="block w-full rounded-xl border border-border bg-card px-3 py-2 text-left text-sm font-medium text-foreground hover:border-primary hover:text-primary"
                   onClick={() => goToPlace(s.placeId)}
                   type="button"
                 >
@@ -182,11 +182,11 @@ export function LandingForm() {
 
           {suggestions.length ? (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-500">Suggestions</p>
+              <p className="text-xs font-semibold text-muted-foreground">Suggestions</p>
               {suggestions.map((s) => (
                 <button
                   key={s.placeId}
-                  className="block w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-sm font-medium text-slate-700 hover:border-primary hover:text-primary"
+                  className="block w-full rounded-xl border border-border bg-card px-3 py-2 text-left text-sm font-medium text-foreground hover:border-primary hover:text-primary"
                   onClick={() => goToPlace(s.placeId)}
                   type="button"
                 >
@@ -196,12 +196,12 @@ export function LandingForm() {
             </div>
           ) : null}
 
-          <div className="rounded-xl bg-white p-3">
-            <p className="inline-flex items-center gap-1 text-xs font-semibold text-slate-500">
+          <div className="rounded-xl bg-card p-3 shadow-sm">
+            <p className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
               Pro tip
             </p>
-            <p className="mt-1 text-sm text-slate-600">Include vibe words like “budget”, “luxury”, “food”, or “hike” for better recommendations.</p>
+            <p className="mt-1 text-sm text-muted-foreground">Include vibe words like “budget”, “luxury”, “food”, or “hike” for better recommendations.</p>
           </div>
 
           {error ? <p className="text-xs text-red-600">{error}</p> : null}

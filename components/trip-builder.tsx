@@ -194,33 +194,33 @@ export function TripBuilder({
     <div className="space-y-6">
       <div className="social-card p-4">
         <div className="grid gap-2 sm:grid-cols-3">
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <div className="rounded-xl border border-border bg-muted p-3">
+            <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <CalendarDays className="h-3.5 w-3.5 text-primary" />
               Itinerary Days
             </p>
-            <p className="mt-1 text-xl font-extrabold text-slate-900">{trip.days.length}</p>
+            <p className="mt-1 text-xl font-extrabold text-foreground">{trip.days.length}</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <div className="rounded-xl border border-border bg-muted p-3">
+            <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <ListChecks className="h-3.5 w-3.5 text-primary" />
               Planned Stops
             </p>
-            <p className="mt-1 text-xl font-extrabold text-slate-900">{totalStops}</p>
+            <p className="mt-1 text-xl font-extrabold text-foreground">{totalStops}</p>
           </div>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
+          <div className="rounded-xl border border-border bg-muted p-3">
+            <p className="inline-flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
               <Map className="h-3.5 w-3.5 text-primary" />
               View Mode
             </p>
-            <p className="mt-1 text-xl font-extrabold text-slate-900">{viewMode.toUpperCase()}</p>
+            <p className="mt-1 text-xl font-extrabold text-foreground">{viewMode.toUpperCase()}</p>
           </div>
         </div>
       </div>
 
       <div className="social-card p-4">
         <div className="flex flex-wrap items-center gap-2">
-          <select className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm" value={addDayId} onChange={(e) => setAddDayId(e.target.value)}>
+          <select className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground" value={addDayId} onChange={(e) => setAddDayId(e.target.value)}>
             {trip.days.map((day) => (
               <option key={day.id} value={day.id}>
                 Day {day.dayIndex}
@@ -240,7 +240,7 @@ export function TripBuilder({
             Add place
           </Button>
 
-          <div className="ml-auto flex gap-1 rounded-lg border border-slate-200 bg-white p-1">
+          <div className="ml-auto flex gap-1 rounded-lg border border-border bg-card p-1">
             <Button variant={viewMode === "map" ? "default" : "ghost"} onClick={() => setViewMode("map")} className="h-8 rounded-md px-3">
               Map
             </Button>
@@ -279,32 +279,32 @@ export function TripBuilder({
                 onDrop={(e) => onDrop(e, day.id)}
               >
                 <details open={day.dayIndex === 1} className="group">
-                  <summary className="flex cursor-pointer items-center justify-between gap-3 bg-slate-50 px-5 py-4">
+                  <summary className="flex cursor-pointer items-center justify-between gap-3 bg-muted px-5 py-4">
                     <div>
                       <p className="text-xs font-semibold uppercase tracking-wide text-primary">Day {day.dayIndex}</p>
-                      <h3 className="text-lg font-bold text-slate-900">{dayTitle(day)}</h3>
-                      <p className="text-xs text-slate-500">{ordered.length} planned stops</p>
+                      <h3 className="text-lg font-bold text-foreground">{dayTitle(day)}</h3>
+                      <p className="text-xs text-muted-foreground">{ordered.length} planned stops</p>
                     </div>
-                    <ChevronDown className="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" />
+                    <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-open:rotate-180" />
                   </summary>
 
-                  <div className="space-y-3 border-t border-slate-200 p-5">
+                  <div className="space-y-3 border-t border-border p-5">
                     {ordered.map((item, index) => (
                       <article
                         key={item.id}
                         draggable
                         onDragStart={(e) => onDragStart(e, item.id)}
-                        className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+                        className="rounded-xl border border-border bg-card p-4 shadow-sm"
                       >
                         <div className="flex items-start gap-3">
-                          <button className="rounded-md p-1 text-slate-300 hover:text-slate-500" type="button" aria-label="Drag item">
+                          <button className="rounded-md p-1 text-muted-foreground/70 hover:text-muted-foreground" type="button" aria-label="Drag item">
                             <GripVertical className="h-4 w-4" />
                           </button>
 
                           <div className="flex-1">
                             <p className="text-[10px] font-bold uppercase tracking-wide text-primary">{item.category.replace(/_/g, " ")}</p>
-                            <h4 className="text-base font-bold text-slate-900">{item.name}</h4>
-                            {item.notes ? <p className="mt-1 text-sm text-slate-500">{item.notes}</p> : null}
+                            <h4 className="text-base font-bold text-foreground">{item.name}</h4>
+                            {item.notes ? <p className="mt-1 text-sm text-muted-foreground">{item.notes}</p> : null}
 
                             <div className="mt-3 flex flex-wrap items-center gap-2">
                               <Button
@@ -370,7 +370,7 @@ export function TripBuilder({
                               </Button>
 
                               <button
-                                className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs font-medium text-slate-500 hover:text-primary"
+                                className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2 py-1 text-xs font-medium text-muted-foreground hover:text-primary"
                                 onClick={() => setFocused(item.placeId)}
                                 type="button"
                               >
@@ -378,7 +378,7 @@ export function TripBuilder({
                                 Focus on map
                               </button>
 
-                              <div className="ml-auto inline-flex items-center gap-2 text-xs text-slate-500">
+                              <div className="ml-auto inline-flex items-center gap-2 text-xs text-muted-foreground">
                                 <Button
                                   className="h-7 rounded-md px-2"
                                   variant="ghost"
@@ -405,7 +405,7 @@ export function TripBuilder({
                     ))}
 
                     {!ordered.length ? (
-                      <div className="rounded-xl border border-dashed border-slate-200 p-5 text-sm text-slate-500">
+                      <div className="rounded-xl border border-dashed border-border p-5 text-sm text-muted-foreground">
                         No activities yet. Use &quot;Add place&quot; above to populate this day.
                       </div>
                     ) : null}
@@ -418,7 +418,7 @@ export function TripBuilder({
       ) : null}
 
       {!groupToken ? (
-        <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-500">
+        <div className="rounded-xl border border-border bg-muted px-4 py-3 text-xs text-muted-foreground">
           Open this trip with a group invite token to enable voting.
         </div>
       ) : null}

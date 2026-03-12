@@ -36,8 +36,8 @@ export default async function PlaceHubPage({ params }: { params: { placeId: stri
       <Link href="/" className="text-sm font-semibold text-primary hover:underline">Back</Link>
 
       <header className="social-card p-6">
-        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Place Discovery Hub</h1>
-        <p className="mt-2 inline-flex items-center gap-2 text-sm text-slate-500">
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground">Place Discovery Hub</h1>
+        <p className="mt-2 inline-flex items-center gap-2 text-sm text-muted-foreground">
           <MapPin className="h-4 w-4 text-primary" />
           {place.name} · {place.address}
         </p>

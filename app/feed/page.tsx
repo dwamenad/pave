@@ -154,7 +154,7 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
                   className={
                     active
                       ? "inline-flex min-h-11 items-center rounded-full bg-primary px-4 py-2 text-xs font-bold text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
-                      : "inline-flex min-h-11 items-center rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold text-slate-600 hover:border-primary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
+                      : "inline-flex min-h-11 items-center rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold text-muted-foreground hover:border-primary hover:text-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35"
                   }
                   href={sourceHref(mode)}
                 >
@@ -180,26 +180,23 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
             {trending.length ? (
               <ul className="space-y-4">
                 {trending.map((entry) => (
-                  <li
-                    key={entry.destination}
-                    className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl px-2 py-1 transition-colors hover:bg-slate-50"
-                  >
-                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-slate-100">
+                  <li key={entry.destination} className="flex min-h-14 cursor-pointer items-center gap-3 rounded-xl px-2 py-1 transition-colors hover:bg-muted/70">
+                    <div className="h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-muted">
                       {entry.thumbnailUrl ? (
                         <img alt={entry.destination} className="h-full w-full object-cover" src={entry.thumbnailUrl} />
                       ) : (
-                        <div className="h-full w-full bg-gradient-to-br from-cyan-100 to-blue-100" />
+                        <div className="h-full w-full bg-gradient-to-br from-cyan-100 to-blue-100 dark:from-cyan-950/40 dark:to-blue-950/30" />
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-900">{entry.destination}</p>
-                      <p className="text-xs text-slate-500">{entry.count} itineraries this week</p>
+                      <p className="text-sm font-bold text-foreground">{entry.destination}</p>
+                      <p className="text-xs text-muted-foreground">{entry.count} itineraries this week</p>
                     </div>
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-slate-500">No trending destinations yet.</p>
+              <p className="text-xs text-muted-foreground">No trending destinations yet.</p>
             )}
 
             <button
@@ -216,12 +213,12 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
                 {creators.map((creator) => (
                   <li key={creator.id} className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="h-10 w-10 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-10 w-10 overflow-hidden rounded-full bg-muted">
                         {creator.image ? <img alt={creator.name} className="h-full w-full object-cover" src={creator.image} /> : null}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-slate-900">{creator.name}</p>
-                        <p className="text-xs text-slate-500">{creator.role}</p>
+                        <p className="text-sm font-bold text-foreground">{creator.name}</p>
+                        <p className="text-xs text-muted-foreground">{creator.role}</p>
                       </div>
                     </div>
 
@@ -234,17 +231,17 @@ export default async function FeedPage({ searchParams }: { searchParams?: { sour
                         Follow
                       </Link>
                     ) : (
-                      <span className="text-sm font-bold text-slate-300">Follow</span>
+                      <span className="text-sm font-bold text-muted-foreground/50">Follow</span>
                     )}
                   </li>
                 ))}
               </ul>
             ) : (
-              <p className="text-xs text-slate-500">Top planners appear as engagement grows.</p>
+              <p className="text-xs text-muted-foreground">Top planners appear as engagement grows.</p>
             )}
           </RailCard>
 
-          <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500 p-6 text-center text-white shadow-sm">
+          <section className="overflow-hidden rounded-2xl bg-gradient-to-br from-sky-500 via-cyan-500 to-blue-500 p-6 text-center text-white shadow-sm dark:from-sky-600 dark:via-cyan-600 dark:to-blue-700">
             <Rocket className="mx-auto mb-4 h-8 w-8" />
             <h3 className="text-2xl font-bold">Build Your Own</h3>
             <p className="mt-2 text-sm text-white/85">Create, share, and get remixed by the community!</p>

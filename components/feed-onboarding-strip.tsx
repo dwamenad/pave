@@ -27,14 +27,14 @@ export function FeedOnboardingStrip() {
   if (!mounted || !visible) return null;
 
   return (
-    <section className="mb-5 flex flex-col gap-3 rounded-2xl border border-cyan-200 bg-gradient-to-r from-cyan-50 via-sky-50 to-blue-50 p-4 text-slate-800 shadow-sm md:flex-row md:items-center md:justify-between">
+    <section className="mb-5 flex flex-col gap-3 rounded-2xl border border-cyan-200/70 bg-gradient-to-r from-cyan-50 via-sky-50 to-blue-50 p-4 text-slate-800 shadow-sm dark:border-cyan-400/20 dark:from-cyan-950/35 dark:via-sky-950/25 dark:to-blue-950/30 dark:text-slate-100 md:flex-row md:items-center md:justify-between">
       <div className="flex items-start gap-3">
         <span className="mt-0.5 inline-flex rounded-full bg-primary/15 p-2 text-primary">
           <Sparkles className="h-4 w-4" />
         </span>
         <div>
           <p className="text-sm font-bold">New here? Start by exploring, then build your own itinerary.</p>
-          <p className="text-xs text-slate-600">Remix anything you like, or jump straight into create mode.</p>
+          <p className="text-xs text-muted-foreground">Remix anything you like, or jump straight into create mode.</p>
         </div>
       </div>
 
@@ -48,7 +48,7 @@ export function FeedOnboardingStrip() {
         <button
           type="button"
           aria-label="Dismiss onboarding"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 hover:text-slate-700"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground hover:text-foreground"
           onClick={() => setVisible(false)}
         >
           <X className="h-4 w-4" />
