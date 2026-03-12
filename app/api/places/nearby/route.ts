@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { placesProvider } from "@/lib/providers";
 import { budgetToPriceRange } from "@/lib/itinerary";
+import { searchNearbyPlaces } from "@/lib/server/place-service";
 import type { BudgetMode } from "@/lib/types";
 
 export async function GET(request: NextRequest) {
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
 
   const price = budgetToPriceRange(budget);
 
-  const places = await placesProvider.nearbySearch({
+  const result = await searchNearbyPlaces({
     lat,
     lng,
     type,
@@ -24,5 +24,13 @@ export async function GET(request: NextRequest) {
     ...price
   });
 
-  return NextResponse.json({ places });
+  return NextResponse.json({
+    places: result.data ?? [],
+    degraded: result.degraded,
+    stale: result.stale,
+    reasonCode: result.reasonCode,
+    cacheState: result.cacheState,
+    fetchedAt: result.fetchedAt,
+    mockMode: result.mockMode
+  });
 }
