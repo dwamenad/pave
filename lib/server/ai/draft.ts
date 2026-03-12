@@ -1,6 +1,6 @@
 import type { AiTripDraftRequest, AiTripDraftResponse, AiDraftFallbackReason } from "@pave/contracts";
 import { env } from "@/lib/env";
-import { placesProvider } from "@/lib/providers";
+import { getPlaceDetails } from "@/lib/server/place-service";
 import { buildFallbackTripDraft } from "@/lib/server/trip-service";
 import { OpenAIResponsesError, runResponseWithTools } from "@/lib/server/ai/client";
 import { getAiKnowledgeTool } from "@/lib/server/ai/knowledge";
@@ -22,7 +22,7 @@ function classifyDraftFailure(error: unknown): AiDraftFallbackReason {
 
 type GenerateAiTripDraftDeps = {
   env?: Partial<Pick<typeof env, "ENABLE_AI_CREATE" | "OPENAI_API_KEY" | "OPENAI_RESPONSES_MODEL">>;
-  placeDetails?: typeof placesProvider.placeDetails;
+  getPlaceDetails?: typeof getPlaceDetails;
   buildFallbackTripDraft?: typeof buildFallbackTripDraft;
   runResponseWithTools?: typeof runResponseWithTools;
   getAiKnowledgeTool?: typeof getAiKnowledgeTool;
@@ -41,18 +41,23 @@ export async function generateAiTripDraft(input: {
     OPENAI_API_KEY: deps.env?.OPENAI_API_KEY ?? env.OPENAI_API_KEY,
     OPENAI_RESPONSES_MODEL: deps.env?.OPENAI_RESPONSES_MODEL ?? env.OPENAI_RESPONSES_MODEL
   };
-  const placeDetails = deps.placeDetails ?? ((placeId: string) => placesProvider.placeDetails(placeId));
+  const getPlaceDetailsFn = deps.getPlaceDetails ?? getPlaceDetails;
   const buildFallbackTripDraftFn = deps.buildFallbackTripDraft ?? buildFallbackTripDraft;
   const runResponseWithToolsFn = deps.runResponseWithTools ?? runResponseWithTools;
   const getAiKnowledgeToolFn = deps.getAiKnowledgeTool ?? getAiKnowledgeTool;
   const getAiCreateToolDefinitionsFn = deps.getAiCreateToolDefinitions ?? getAiCreateToolDefinitions;
   const executeAiCreateToolCallFn = deps.executeAiCreateToolCall ?? executeAiCreateToolCall;
-  const destination = await placeDetails(input.request.selectedPlaceId).catch(() => null);
+  const destinationResult = await getPlaceDetailsFn(input.request.selectedPlaceId);
+  const destination = destinationResult.data;
 
-  if (!destination) {
+  if (!destinationResult.ok || !destination) {
+    const fallbackReason =
+      destinationResult.reasonCode && destinationResult.reasonCode !== "no_results"
+        ? "provider_unavailable"
+        : "missing_place";
     return {
       generationMode: "fallback",
-      fallbackReason: "missing_place",
+      fallbackReason,
       draft: await buildFallbackTripDraftFn({
         placeId: input.request.selectedPlaceId,
         title: "Recovered trip draft",
@@ -66,6 +71,11 @@ export async function generateAiTripDraft(input: {
         toolCount: 0,
         retrievalUsed: false,
         signedIn
+      },
+      provider: {
+        reasonCode: destinationResult.reasonCode,
+        cacheState: destinationResult.cacheState,
+        mockMode: destinationResult.mockMode
       }
     };
   }
@@ -89,6 +99,11 @@ export async function generateAiTripDraft(input: {
       toolCount: 0,
       retrievalUsed: false,
       signedIn
+    },
+    provider: {
+      reasonCode: destinationResult.reasonCode,
+      cacheState: destinationResult.cacheState,
+      mockMode: destinationResult.mockMode
     }
   });
 
@@ -164,6 +179,11 @@ export async function generateAiTripDraft(input: {
         toolCount: response.toolCount,
         retrievalUsed: response.retrievalUsed,
         signedIn
+      },
+      provider: {
+        reasonCode: destinationResult.reasonCode,
+        cacheState: destinationResult.cacheState,
+        mockMode: destinationResult.mockMode
       }
     };
   } catch (error) {
