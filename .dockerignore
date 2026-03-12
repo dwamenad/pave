@@ -1,0 +1,16 @@
+.git
+.github
+.next
+.playwright-cli
+.tmp-stitch
+.env
+.env.local
+node_modules
+output
+test-results
+apps/mobile/.expo
+apps/mobile/node_modules
+apps/mobile/dist
+apps/mobile
+coverage
+*.log

@@ -57,6 +57,9 @@ These screenshots were captured against the local seeded dataset, so they are a 
 - Start DB: `pnpm db:up`
 - Stop DB: `pnpm db:down`
 - Tail DB logs: `pnpm db:logs`
+- Start full local stack: `pnpm stack:up`
+- Stop full local stack: `pnpm stack:down`
+- Tail full stack logs: `pnpm stack:logs`
 
 ## Quick runtime health check
 Once the web app is running, you can verify the repo-only readiness path with:
@@ -80,6 +83,20 @@ DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/one_click_away?schem
 ```
 
 This matters most for contributors who already had an older local `.env` or `.env.local` before Docker setup was standardized. `pnpm setup:contributor` will create missing env files, but it will not overwrite an existing local connection string for you.
+
+### Dockerized web + DB note
+If you want the web app to run inside Docker as well, use:
+
+```bash
+pnpm stack:up
+```
+
+In that mode:
+
+- the web container connects to Postgres with `DATABASE_URL=postgresql://postgres:postgres@db:5432/one_click_away?schema=public`
+- your host machine should still use `127.0.0.1:5432` if you run Prisma or the web app outside Docker
+- the app still uses Postgres-backed place/nearby cache tables
+- there is not yet a local Redis container; route limiting continues to use the current Upstash-or-local fallback path
 
 ## If setup fails
 1. Ensure Docker is running.

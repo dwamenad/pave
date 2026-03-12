@@ -443,8 +443,11 @@ This section is deliberately detailed. The script names alone do not explain the
 | `pnpm lint` | `next lint` | runs Next.js linting over the web app | focused on the web codebase, not the mobile workspace |
 | `pnpm setup:contributor` | `bash ./scripts/setup-contributor.sh` | bootstraps env files, DB, Prisma client, migrations, and seed data | safest first-run path for contributors |
 | `pnpm db:up` | `docker compose up -d db` | starts the local PostgreSQL service | only manages the `db` service, not the full app stack |
-| `pnpm db:down` | `docker compose down` | stops the compose stack | tears down the local DB container |
+| `pnpm db:down` | `docker compose stop db` | stops only the PostgreSQL service | leaves the rest of the compose stack alone if `web` is running |
 | `pnpm db:logs` | `docker compose logs -f db` | tails PostgreSQL logs | useful for `P1001` / readiness debugging |
+| `pnpm stack:up` | `docker compose up -d db web` | starts the Dockerized web app and PostgreSQL together | best when you want container-to-container DB wiring and a production-like local web runtime |
+| `pnpm stack:down` | `docker compose down` | stops the full local container stack | shuts down both `web` and `db` services |
+| `pnpm stack:logs` | `docker compose logs -f web db` | tails the full container stack logs | useful for debugging startup, health checks, or DB connectivity from inside Docker |
 | `pnpm mobile:dev` | `pnpm --filter @pave/mobile dev` | starts the Expo development server | mobile only; no web process is started |
 | `pnpm mobile:ios` | `pnpm --filter @pave/mobile ios` | runs the native iOS app via Expo prebuild/run | requires Xcode toolchain; heavier than `expo start` |
 | `pnpm mobile:android` | `pnpm --filter @pave/mobile android` | runs the native Android app via Expo prebuild/run | requires Android SDK/emulator setup |
@@ -734,6 +737,22 @@ The container:
 - uses database `one_click_away`
 - persists data to the `pave_pgdata` Docker volume
 
+### Starting the full local web stack
+
+```bash
+pnpm stack:up
+```
+
+This builds and runs the Next.js web app in Docker alongside the PostgreSQL container.
+
+Useful details:
+
+- the web container uses the internal compose host `db`, not `localhost`
+- the app is exposed on `http://localhost:3000`
+- the Docker image uses Next.js standalone output for a smaller runtime
+- place and nearby caching still use Postgres-backed cache tables inside the app
+- rate limiting still uses the current Upstash-or-local fallback path; there is no separate local Redis container yet
+
 ### Watching database logs
 
 ```bash
@@ -752,7 +771,15 @@ Use this when:
 pnpm db:down
 ```
 
-This stops the compose stack. It does not remove the named Docker volume unless you explicitly prune volumes yourself.
+This stops only the PostgreSQL container. It does not remove the named Docker volume unless you explicitly prune volumes yourself.
+
+### Stopping the full local stack
+
+```bash
+pnpm stack:down
+```
+
+Use this when you started the Dockerized `web` + `db` pair together and want to tear the whole local stack down.
 
 ### Schema change workflow
 

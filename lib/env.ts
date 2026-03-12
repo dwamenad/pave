@@ -6,6 +6,11 @@ const booleanFlag = z.preprocess((value) => {
   return false;
 }, z.boolean());
 
+const optionalUrl = z.preprocess((value) => {
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  return value;
+}, z.string().url().optional());
+
 const envSchema = z.object({
   DATABASE_URL: z
     .string()
@@ -15,7 +20,7 @@ const envSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().default("http://localhost:3000"),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
   RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(60),
-  UPSTASH_REDIS_REST_URL: z.string().url().optional(),
+  UPSTASH_REDIS_REST_URL: optionalUrl,
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
   SUPPORT_EMAIL: z.string().email().default("support@pave.app"),
   DEEP_LINK_BASE_URL: z.string().url().default("http://localhost:3000"),
