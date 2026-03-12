@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { budgetToPriceRange, CATEGORY_TYPES, pickTopPlaces } from "@/lib/itinerary";
-import { placesProvider } from "@/lib/providers";
+import { requirePlaceDetails, searchNearbyPlaces } from "@/lib/server/place-service";
 import type { AiCreatePreferences } from "@pave/contracts";
 import type { HubCategory, PlaceDetails } from "@/lib/types";
 
@@ -68,9 +68,17 @@ export function getAiCreateToolDefinitions() {
 }
 
 async function getPlaceDetailsTool(args: { placeId: string }, context: AiCreateToolContext) {
-  const place = await placesProvider.placeDetails(args.placeId);
+  const result = await requirePlaceDetails(args.placeId);
+  const place = result.data;
   context.knownPlaces.set(place.placeId, place);
-  return place;
+  return {
+    ...place,
+    degraded: result.degraded,
+    stale: result.stale,
+    cacheState: result.cacheState,
+    reasonCode: result.reasonCode,
+    mockMode: result.mockMode
+  };
 }
 
 async function searchNearbyPlacesTool(
@@ -93,15 +101,21 @@ async function searchNearbyPlacesTool(
   const price = budgetToPriceRange(budget);
 
   let merged: PlaceDetails[] = [];
+  let degraded = false;
+  let stale = false;
+  let reasonCode: string | undefined;
   for (const type of types.slice(0, 3)) {
-    const results = await placesProvider.nearbySearch({
+    const result = await searchNearbyPlaces({
       lat: args.lat,
       lng: args.lng,
       type,
       radiusMeters,
       ...price
     });
-    merged = merged.concat(results);
+    merged = merged.concat(result.data ?? []);
+    degraded = degraded || result.degraded;
+    stale = stale || result.stale;
+    reasonCode ||= result.reasonCode;
   }
 
   const deduped = Array.from(new Map(merged.map((place) => [place.placeId, place])).values());
@@ -113,6 +127,9 @@ async function searchNearbyPlacesTool(
   return {
     category: args.category,
     radiusMeters,
+    degraded,
+    stale,
+    reasonCode,
     results: ranked.map((place) => ({
       placeId: place.placeId,
       name: place.name,
