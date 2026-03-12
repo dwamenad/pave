@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { placesProvider } from "@/lib/providers";
+import { getPlaceDetails } from "@/lib/server/place-service";
 
 export async function GET(request: NextRequest) {
   const placeId = request.nextUrl.searchParams.get("placeId");
@@ -7,6 +7,22 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "placeId is required" }, { status: 400 });
   }
 
-  const place = await placesProvider.placeDetails(placeId);
-  return NextResponse.json({ place });
+  const result = await getPlaceDetails(placeId);
+  if (!result.ok || !result.data) {
+    const status = result.reasonCode === "no_results" ? 404 : 503;
+    return NextResponse.json(
+      { error: "Unable to load place details.", code: result.reasonCode, mockMode: result.mockMode },
+      { status }
+    );
+  }
+
+  return NextResponse.json({
+    place: result.data,
+    degraded: result.degraded,
+    stale: result.stale,
+    reasonCode: result.reasonCode,
+    cacheState: result.cacheState,
+    fetchedAt: result.fetchedAt,
+    mockMode: result.mockMode
+  });
 }
