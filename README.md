@@ -53,6 +53,24 @@ These screenshots were captured from the live app against the local Docker-backe
 |---|---|
 | <img src="./docs/assets/screenshots/pave-smoke-feed.png" alt="Pave feed local smoke screenshot" width="100%" /> | <img src="./docs/assets/screenshots/pave-smoke-trip-builder.png" alt="Pave trip builder local smoke screenshot" width="100%" /> |
 
+## Theme Support
+
+Pave now supports both light and dark mode on the web app.
+
+- the app defaults to the visitor's system theme
+- the header toggle lets a user pin light or dark mode manually
+- shared semantic tokens drive the shell and major product surfaces, so theme changes stay consistent instead of turning into route-by-route one-offs
+
+The current pass covers the shared shell plus the main planning and social routes: create, feed, post detail, nearby, profile, trip builder, and place hub.
+
+### Dark Mode Snapshots
+
+These are live captures from the seeded app in dark mode.
+
+| Feed | Post detail | Profile |
+|---|---|---|
+| <img src="./docs/assets/screenshots/pave-feed-dark-theme.png" alt="Pave feed in dark mode" width="100%" /> | <img src="./docs/assets/screenshots/pave-post-dark-theme.png" alt="Pave post detail in dark mode" width="100%" /> | <img src="./docs/assets/screenshots/pave-profile-dark-theme.png" alt="Pave profile in dark mode" width="100%" /> |
+
 ## Proprietary Notice
 
 This repository is proprietary. It is **not** open source.
