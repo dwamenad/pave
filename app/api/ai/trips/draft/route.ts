@@ -18,7 +18,12 @@ export async function POST(request: NextRequest) {
     userId: actor?.user?.id ?? null,
     props: {
       model: process.env.OPENAI_RESPONSES_MODEL || "gpt-4.1-mini",
+      generationMode: "ai",
+      fallbackReason: null,
+      placeResolved: true,
+      cacheState: "miss",
       requestedDays: payload.preferences.days,
+      publishAfterCreate: null,
       signedIn: Boolean(actor?.user)
     }
   });
@@ -36,9 +41,13 @@ export async function POST(request: NextRequest) {
       latencyMs: draftResponse.telemetry.latencyMs,
       toolCount: draftResponse.telemetry.toolCount,
       retrievalUsed: draftResponse.telemetry.retrievalUsed,
+      generationMode: draftResponse.generationMode,
       fallbackReason: draftResponse.fallbackReason ?? null,
+      placeResolved: true,
+      cacheState: draftResponse.provider?.cacheState ?? "miss",
       dayCount: draftResponse.draft.days.length,
       itemCount: countDraftItems(draftResponse.draft.days),
+      publishAfterCreate: null,
       signedIn: draftResponse.telemetry.signedIn
     }
   });
