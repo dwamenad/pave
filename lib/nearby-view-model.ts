@@ -6,6 +6,11 @@ export type NearbyPayload = {
   eat: PlaceCard[];
   coffee: PlaceCard[];
   do: PlaceCard[];
+  degraded?: boolean;
+  stale?: boolean;
+  reasonCode?: string;
+  cacheState?: "hit" | "stale" | "miss";
+  mockMode?: boolean;
 };
 
 export function normalizeNearbyCategory(input?: string): NearbyCategory {
