@@ -1,10 +1,26 @@
-import type { AiCreatePreferences, AiTripDraft, AiTripDraftDay, AiTripDraftItem } from "@pave/contracts";
+import type {
+  AiCreatePreferences,
+  AiTripDraft,
+  AiTripDraftDay,
+  AiTripDraftItem,
+  CreateTripFromDraftFailureCode
+} from "@pave/contracts";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
-import { placesProvider } from "@/lib/providers";
 import { budgetToPriceRange, CATEGORY_TYPES, pickTopPlaces } from "@/lib/itinerary";
+import { getPlaceDetails, searchNearbyPlaces } from "@/lib/server/place-service";
 import type { BudgetMode, HubCategory, PlaceDetails, PreferenceInput } from "@/lib/types";
 import { slugify } from "@/lib/utils";
+
+export class CreateTripFromDraftError extends Error {
+  code: CreateTripFromDraftFailureCode;
+
+  constructor(code: CreateTripFromDraftFailureCode, message: string) {
+    super(message);
+    this.code = code;
+    this.name = "CreateTripFromDraftError";
+  }
+}
 
 function paceToRadiusMeters(pace: AiCreatePreferences["pace"] | PreferenceInput["pace"]) {
   return pace === "slow" ? 2800 : pace === "packed" ? 5000 : 4000;
@@ -25,14 +41,14 @@ async function loadNearbyCategoryMap(input: {
     let merged: PlaceDetails[] = [];
 
     for (const type of types.slice(0, 3)) {
-      const results = await placesProvider.nearbySearch({
+      const result = await searchNearbyPlaces({
         lat: input.centerLat,
         lng: input.centerLng,
         type,
         radiusMeters,
         ...price
       });
-      merged = merged.concat(results);
+      merged = merged.concat(result.data ?? []);
     }
 
     nearbyByCategory.set(category, Array.from(new Map(merged.map((place) => [place.placeId, place])).values()));
@@ -68,6 +84,22 @@ function toDraftItem(place: PlaceDetails, category: HubCategory): AiTripDraftIte
         ? "High-confidence stay option close to the rest of the plan."
         : "High-rated stop that keeps the route tight and easy to follow.",
     notes: place.address ?? null
+  };
+}
+
+function toFallbackAnchorItem(input: {
+  placeId: string;
+  name: string;
+  lat: number;
+  lng: number;
+  address?: string | null;
+}): AiTripDraftItem {
+  return {
+    placeId: input.placeId,
+    category: "do",
+    name: input.name,
+    rationale: "Fallback anchor stop used when live nearby data is unavailable.",
+    notes: input.address ?? null
   };
 }
 
@@ -118,6 +150,17 @@ export async function buildFallbackTripDraft(input: {
     eatPick.forEach((place) => used.add(place.placeId));
 
     const dayItems = [...doPick.map((place) => toDraftItem(place, "do")), ...eatPick.map((place) => toDraftItem(place, "eat"))];
+    if (!dayItems.length) {
+      dayItems.push(
+        toFallbackAnchorItem({
+          placeId: input.placeId,
+          name: input.destinationName || input.title,
+          lat: input.centerLat,
+          lng: input.centerLng,
+          address: input.destinationAddress ?? null
+        })
+      );
+    }
 
     days.push({
       dayIndex,
@@ -151,10 +194,35 @@ export async function createTripFromDraft(input: {
   draft: AiTripDraft;
   authorId?: string;
 }) {
-  const destination = await placesProvider.placeDetails(input.draft.destination.placeId);
+  const destinationResult = await getPlaceDetails(input.draft.destination.placeId);
+  const destination = destinationResult.data;
+  if (!destinationResult.ok || !destination) {
+    throw new CreateTripFromDraftError(
+      destinationResult.reasonCode && destinationResult.reasonCode !== "no_results"
+        ? "provider_unavailable"
+        : "destination_unresolved",
+      "Unable to resolve the destination for this draft."
+    );
+  }
+
   const uniquePlaceIds = Array.from(new Set(getDraftPlaceIds(input.draft)));
-  const canonicalPlaces = await Promise.all(uniquePlaceIds.map((placeId) => placesProvider.placeDetails(placeId)));
-  const placeMap = new Map(canonicalPlaces.map((place) => [place.placeId, place]));
+  const canonicalResults = await Promise.all(uniquePlaceIds.map((placeId) => getPlaceDetails(placeId)));
+  const unresolvedResult = canonicalResults.find((result) => !result.ok || !result.data);
+  if (unresolvedResult) {
+    throw new CreateTripFromDraftError(
+      unresolvedResult.reasonCode && unresolvedResult.reasonCode !== "no_results"
+        ? "provider_unavailable"
+        : "place_unresolved",
+      "One or more places in this draft could not be resolved."
+    );
+  }
+
+  const placeMap = new Map(
+    canonicalResults
+      .map((result) => result.data)
+      .filter((place): place is PlaceDetails => Boolean(place))
+      .map((place) => [place.placeId, place])
+  );
 
   const slug = `${slugify(input.draft.title)}-${nanoid(6).toLowerCase()}`;
   const trip = await db.trip.create({
@@ -182,7 +250,7 @@ export async function createTripFromDraft(input: {
       data: day.items.map((item, index) => {
         const canonical = placeMap.get(item.placeId);
         if (!canonical) {
-          throw new Error(`Missing canonical place for ${item.placeId}`);
+          throw new CreateTripFromDraftError("place_unresolved", `Missing canonical place for ${item.placeId}`);
         }
 
         return {
