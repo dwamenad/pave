@@ -1,12 +1,21 @@
 export type AiDraftFallbackReason =
   | "ai_disabled"
   | "missing_place"
+  | "provider_unavailable"
   | "model_timeout"
   | "model_error"
   | "invalid_output"
   | "duplicate_places"
   | "unresolved_places"
   | "policy_invalid";
+
+export type CreateTripFromDraftFailureCode =
+  | "draft_day_mismatch"
+  | "duplicate_places"
+  | "too_many_stays"
+  | "destination_unresolved"
+  | "place_unresolved"
+  | "provider_unavailable";
 
 export type AiCreatePreferences = {
   budget: "budget" | "mid" | "luxury";
@@ -62,6 +71,11 @@ export type AiTripDraftResponse = {
     toolCount: number;
     retrievalUsed: boolean;
     signedIn: boolean;
+  };
+  provider?: {
+    reasonCode?: string;
+    cacheState: "hit" | "stale" | "miss";
+    mockMode: boolean;
   };
 };
 
