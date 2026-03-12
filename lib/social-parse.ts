@@ -1,4 +1,4 @@
-import { placesProvider } from "@/lib/providers";
+import { autocompletePlaces, type PlaceServiceReasonCode } from "@/lib/server/place-service";
 import type { PlaceSuggestion } from "@/lib/types";
 
 const hintRegexes = [
@@ -23,21 +23,45 @@ export async function parseSocialIntent(input: string, metadataTexts: string[] =
   hints: string[];
   resolved?: PlaceSuggestion;
   ambiguous: PlaceSuggestion[];
+  resolution: "resolved" | "ambiguous" | "unresolved" | "degraded";
+  code?: PlaceServiceReasonCode;
+  mockMode: boolean;
 }> {
   const hints = extractHints([input, ...metadataTexts].join(" "));
   const direct = hints[0] || input.trim();
   if (!direct) {
-    return { hints: [], ambiguous: [] };
+    return { hints: [], ambiguous: [], resolution: "unresolved", mockMode: false };
   }
 
-  const suggestions = await placesProvider.autocomplete(direct);
+  const autocomplete = await autocompletePlaces(direct);
+  if (!autocomplete.ok) {
+    return {
+      hints,
+      ambiguous: [],
+      resolution: "degraded",
+      code: autocomplete.reasonCode,
+      mockMode: autocomplete.mockMode
+    };
+  }
+
+  const suggestions = autocomplete.data ?? [];
   if (suggestions.length === 1) {
-    return { hints, resolved: suggestions[0], ambiguous: [] };
+    return {
+      hints,
+      resolved: suggestions[0],
+      ambiguous: [],
+      resolution: "resolved",
+      code: autocomplete.reasonCode,
+      mockMode: autocomplete.mockMode
+    };
   }
 
   return {
     hints,
     resolved: undefined,
-    ambiguous: suggestions.slice(0, 5)
+    ambiguous: suggestions.slice(0, 5),
+    resolution: suggestions.length ? "ambiguous" : "unresolved",
+    code: autocomplete.reasonCode,
+    mockMode: autocomplete.mockMode
   };
 }
