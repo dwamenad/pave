@@ -40,6 +40,28 @@ function geolocationErrorMessage(code?: number) {
   return "Unable to determine your location. Please try again.";
 }
 
+function nearbyReasonCopy(reasonCode?: string, stale?: boolean) {
+  if (stale) {
+    return "Live place data is temporarily unavailable, so you are seeing cached nearby results.";
+  }
+  if (reasonCode === "provider_misconfigured") {
+    return "The nearby provider is not configured yet in this environment.";
+  }
+  if (reasonCode === "rate_limited") {
+    return "Nearby search is being rate limited right now. Give it a moment and retry.";
+  }
+  if (reasonCode === "invalid_request") {
+    return "The nearby request could not be completed. Try refreshing your location.";
+  }
+  return "Nearby data could not be loaded right now. Try again in a moment.";
+}
+
+function emptyStateCopy(category: NearbyCategory) {
+  if (category === "eat") return "No food spots matched this area yet. Try refreshing your location or switch to coffee or nearby things to do.";
+  if (category === "coffee") return "No coffee spots matched this area yet. Try refreshing your location or switch to food or things to do.";
+  return "No activity picks matched this area yet. Try refreshing your location or switch to food or coffee.";
+}
+
 export function NearbyNow() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -180,6 +202,27 @@ export function NearbyNow() {
         </div>
       ) : null}
 
+      {data?.degraded ? (
+        <div
+          role="status"
+          aria-live="polite"
+          className={`rounded-xl border p-4 text-sm ${data.stale ? "border-amber-200 bg-amber-50 text-amber-800" : "border-slate-200 bg-slate-50 text-slate-700"}`}
+        >
+          <p className="inline-flex items-center gap-2 font-semibold">
+            <AlertTriangle className="h-4 w-4" />
+            {data.stale ? "Using cached nearby results" : "Nearby data is degraded"}
+          </p>
+          <p className="mt-1">{nearbyReasonCopy(data.reasonCode, data.stale)}</p>
+        </div>
+      ) : null}
+
+      {data?.mockMode ? (
+        <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm text-slate-700" role="status" aria-live="polite">
+          <p className="font-semibold text-primary">Mock place mode is active.</p>
+          <p className="mt-1">These nearby spots are coming from the local demo dataset instead of the live provider.</p>
+        </div>
+      ) : null}
+
       {data ? (
         <section className="space-y-5">
           <div className="flex items-center justify-between border-b border-slate-200 pb-4">
@@ -221,7 +264,7 @@ export function NearbyNow() {
           ) : (
             <div className="social-empty-panel">
               <p className="font-semibold text-slate-700">No places in this category yet.</p>
-              <p className="mt-1">Switch category or refresh location to find nearby options.</p>
+              <p className="mt-1">{emptyStateCopy(activeCategory)}</p>
             </div>
           )}
         </section>
