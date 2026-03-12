@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateTripPlan } from "@/lib/server/trip-service";
 import { getApiActor } from "@/lib/server/route-user";
+import { CreateTripFromDraftError } from "@/lib/server/trip-service";
 
 const createTripSchema = z.object({
   title: z.string().min(2),
@@ -25,9 +26,17 @@ export async function POST(request: NextRequest) {
   const payload = createTripSchema.parse(await request.json());
   const actor = await getApiActor(request);
   const user = actor?.user ?? null;
-  const trip = await generateTripPlan({
-    ...payload,
-    authorId: user?.id
-  });
-  return NextResponse.json({ trip });
+  try {
+    const trip = await generateTripPlan({
+      ...payload,
+      authorId: user?.id
+    });
+    return NextResponse.json({ trip });
+  } catch (error) {
+    if (error instanceof CreateTripFromDraftError) {
+      const status = error.code === "provider_unavailable" ? 503 : 400;
+      return NextResponse.json({ error: error.message, code: error.code }, { status });
+    }
+    throw error;
+  }
 }
