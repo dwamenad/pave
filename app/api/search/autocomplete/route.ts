@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { placesProvider } from "@/lib/providers";
 import { rateLimit } from "@/lib/server/rate-limit";
+import { autocompletePlaces } from "@/lib/server/place-service";
 
-function toClientError(error: unknown) {
-  const message = error instanceof Error ? error.message : "Autocomplete failed";
-  if (message.includes("Missing GOOGLE_MAPS_API_KEY_SERVER")) {
+function toClientError(code?: string) {
+  if (code === "provider_misconfigured") {
     return "Google Places server key is missing.";
   }
-  if (message.includes("API_KEY_INVALID") || message.includes("API key not valid")) {
-    return "Google Places server key is invalid.";
+  if (code === "invalid_request") {
+    return "The place lookup request was invalid.";
+  }
+  if (code === "rate_limited") {
+    return "Autocomplete is rate limited right now.";
   }
   return "Unable to load place suggestions right now.";
 }
@@ -30,11 +32,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ suggestions: [] });
     }
 
-    const suggestions = await placesProvider.autocomplete(query, sessionToken);
-    return NextResponse.json({ suggestions });
-  } catch (error) {
+    const result = await autocompletePlaces(query, sessionToken);
+    if (!result.ok) {
+      return NextResponse.json(
+        {
+          error: toClientError(result.reasonCode),
+          code: result.reasonCode,
+          suggestions: [],
+          mockMode: result.mockMode
+        },
+        { status: 503 }
+      );
+    }
+
+    return NextResponse.json({
+      suggestions: result.data ?? [],
+      code: result.reasonCode,
+      mockMode: result.mockMode
+    });
+  } catch {
     return NextResponse.json(
-      { error: toClientError(error), suggestions: [] },
+      { error: "Unable to load place suggestions right now.", code: "provider_unavailable", suggestions: [] },
       { status: 500 }
     );
   }
