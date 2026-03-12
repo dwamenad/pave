@@ -31,7 +31,8 @@ const envSchema = z.object({
   OPENAI_RESPONSES_MODEL: z.string().default("gpt-4.1-mini"),
   OPENAI_VECTOR_STORE_ID: z.string().optional(),
   ENABLE_AI_CREATE: booleanFlag.default(false),
-  NEXT_PUBLIC_ENABLE_AI_CREATE: booleanFlag.default(false)
+  NEXT_PUBLIC_ENABLE_AI_CREATE: booleanFlag.default(false),
+  USE_MOCK_PLACES_PROVIDER: booleanFlag.default(false)
 });
 
 export const env = envSchema.parse({
@@ -57,5 +58,6 @@ export const env = envSchema.parse({
   OPENAI_RESPONSES_MODEL: process.env.OPENAI_RESPONSES_MODEL,
   OPENAI_VECTOR_STORE_ID: process.env.OPENAI_VECTOR_STORE_ID,
   ENABLE_AI_CREATE: process.env.ENABLE_AI_CREATE,
-  NEXT_PUBLIC_ENABLE_AI_CREATE: process.env.NEXT_PUBLIC_ENABLE_AI_CREATE
+  NEXT_PUBLIC_ENABLE_AI_CREATE: process.env.NEXT_PUBLIC_ENABLE_AI_CREATE,
+  USE_MOCK_PLACES_PROVIDER: process.env.USE_MOCK_PLACES_PROVIDER
 });
