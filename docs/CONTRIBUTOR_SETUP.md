@@ -42,6 +42,8 @@ Pave now supports both light and dark mode in the web app.
 
 When you are doing visual QA, it is worth checking both themes on the routes you touched instead of assuming the semantic tokens carried everything automatically.
 
+For a reusable pass/fail checklist, use [THEME_QA_CHECKLIST.md](./THEME_QA_CHECKLIST.md).
+
 ## What good local state looks like
 Once Docker Postgres is up and the seed has run cleanly, you should be able to load seeded surfaces immediately.
 
