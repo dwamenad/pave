@@ -3,13 +3,15 @@ import { parseSocialIntent } from "@/lib/social-parse";
 import { rateLimit } from "@/lib/server/rate-limit";
 import { fetchMetadataForLinks } from "@/lib/server/link-metadata";
 
-function toClientError(error: unknown) {
-  const message = error instanceof Error ? error.message : "Social parse failed";
-  if (message.includes("Missing GOOGLE_MAPS_API_KEY_SERVER")) {
+function toClientError(code?: string) {
+  if (code === "provider_misconfigured") {
     return "Google Places server key is missing.";
   }
-  if (message.includes("API_KEY_INVALID") || message.includes("API key not valid")) {
-    return "Google Places server key is invalid.";
+  if (code === "invalid_request") {
+    return "The location lookup request was invalid.";
+  }
+  if (code === "rate_limited") {
+    return "Location parsing is rate limited right now.";
   }
   return "Unable to parse location hints right now.";
 }
@@ -19,7 +21,7 @@ export async function POST(request: NextRequest) {
     const limited = await rateLimit(request);
     if (!limited.ok) {
       return NextResponse.json(
-        { error: "Too many requests", retryAfterMs: limited.retryAfterMs },
+        { error: "Too many requests", code: "rate_limited", retryAfterMs: limited.retryAfterMs },
         { status: 429 }
       );
     }
@@ -32,10 +34,33 @@ export async function POST(request: NextRequest) {
       .flatMap((item) => [item.title, item.description, ...item.parsedHints])
       .filter(Boolean) as string[];
     const parsed = await parseSocialIntent(input, metadataTexts);
+    if (parsed.resolution === "degraded") {
+      return NextResponse.json(
+        {
+          error: toClientError(parsed.code),
+          code: parsed.code,
+          hints: parsed.hints,
+          ambiguous: [],
+          metadata,
+          resolution: parsed.resolution,
+          mockMode: parsed.mockMode
+        },
+        { status: 503 }
+      );
+    }
+
     return NextResponse.json({ ...parsed, metadata });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
-      { error: toClientError(error), hints: [], ambiguous: [], metadata: [] },
+      {
+        error: toClientError("provider_unavailable"),
+        code: "provider_unavailable",
+        hints: [],
+        ambiguous: [],
+        metadata: [],
+        resolution: "degraded",
+        mockMode: false
+      },
       { status: 500 }
     );
   }
