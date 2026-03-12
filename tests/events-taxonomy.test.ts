@@ -4,6 +4,9 @@ import { TRACKED_EVENT_NAMES, isTrackedEventName } from "@/lib/event-taxonomy";
 describe("event taxonomy", () => {
   it("contains the required funnel events", () => {
     const required = [
+      "start_create_flow",
+      "complete_parse_social",
+      "complete_trip_create",
       "view_feed",
       "view_post",
       "save_post",
@@ -11,7 +14,8 @@ describe("event taxonomy", () => {
       "publish_post",
       "share_trip",
       "comment_post",
-      "follow_user"
+      "follow_user",
+      "invite_collaborator"
     ];
 
     for (const eventName of required) {
@@ -26,4 +30,3 @@ describe("event taxonomy", () => {
     expect(isTrackedEventName("")).toBe(false);
   });
 });
-
