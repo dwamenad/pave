@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { placesProvider } from "@/lib/providers";
 import { budgetToPriceRange } from "@/lib/itinerary";
+import { searchNearbyPlaces } from "@/lib/server/place-service";
 
 const quickTypes = {
   eat: ["restaurant"],
@@ -20,15 +20,29 @@ export async function GET(request: NextRequest) {
 
   try {
     const [eat, coffee, quickDo] = await Promise.all([
-      placesProvider.nearbySearch({ lat, lng, type: quickTypes.eat[0], radiusMeters: 2000, ...price }),
-      placesProvider.nearbySearch({ lat, lng, type: quickTypes.coffee[0], radiusMeters: 2000, ...price }),
-      placesProvider.nearbySearch({ lat, lng, type: quickTypes.do[0], radiusMeters: 2500, ...price })
+      searchNearbyPlaces({ lat, lng, type: quickTypes.eat[0], radiusMeters: 2000, ...price }),
+      searchNearbyPlaces({ lat, lng, type: quickTypes.coffee[0], radiusMeters: 2000, ...price }),
+      searchNearbyPlaces({ lat, lng, type: quickTypes.do[0], radiusMeters: 2500, ...price })
     ]);
 
+    const degraded = eat.degraded || coffee.degraded || quickDo.degraded;
+    const stale = eat.stale || coffee.stale || quickDo.stale;
+    const reasonCode = eat.reasonCode || coffee.reasonCode || quickDo.reasonCode;
+    const cacheState = [eat.cacheState, coffee.cacheState, quickDo.cacheState].includes("hit")
+      ? "hit"
+      : stale
+        ? "stale"
+        : "miss";
+
     return NextResponse.json({
-      eat: eat.slice(0, 5),
-      coffee: coffee.slice(0, 5),
-      do: quickDo.slice(0, 5)
+      eat: (eat.data ?? []).slice(0, 5),
+      coffee: (coffee.data ?? []).slice(0, 5),
+      do: (quickDo.data ?? []).slice(0, 5),
+      degraded,
+      stale,
+      reasonCode,
+      cacheState,
+      mockMode: eat.mockMode || coffee.mockMode || quickDo.mockMode
     });
   } catch (error) {
     console.error("Nearby provider unavailable", error);
@@ -36,7 +50,11 @@ export async function GET(request: NextRequest) {
       eat: [],
       coffee: [],
       do: [],
-      degraded: true
+      degraded: true,
+      stale: false,
+      reasonCode: "provider_unavailable",
+      cacheState: "miss",
+      mockMode: false
     });
   }
 }
