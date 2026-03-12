@@ -41,6 +41,18 @@
   <img src="./docs/assets/pave-architecture.svg" alt="Pave architecture overview" width="100%" />
 </p>
 
+## Fresh Local Screens
+
+These screenshots were captured from the live app against the local Docker-backed database after seeding the demo network. They are not polished mockups. They are the product showing its work.
+
+| Create flow | Nearby discovery |
+|---|---|
+| <img src="./docs/assets/screenshots/pave-smoke-create.png" alt="Pave create flow local smoke screenshot" width="100%" /> | <img src="./docs/assets/screenshots/pave-smoke-nearby.png" alt="Pave nearby discovery local smoke screenshot" width="100%" /> |
+
+| Social feed | Trip builder |
+|---|---|
+| <img src="./docs/assets/screenshots/pave-smoke-feed.png" alt="Pave feed local smoke screenshot" width="100%" /> | <img src="./docs/assets/screenshots/pave-smoke-trip-builder.png" alt="Pave trip builder local smoke screenshot" width="100%" /> |
+
 ## Proprietary Notice
 
 This repository is proprietary. It is **not** open source.
