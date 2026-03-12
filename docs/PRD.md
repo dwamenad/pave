@@ -110,11 +110,20 @@ Operationally, this means:
 - Server-side PDF export.
 
 ## Out of scope (MVP)
-- Native mobile apps.
 - Full media upload pipeline (external URL only for post media).
 - Realtime comments/chat.
 - Advanced moderation console.
 - Paid/social platform API partnerships requiring elevated scopes.
+
+## 6A) Current Product Constraints
+
+These constraints are still real in the current implementation and should remain explicit in contributor planning, roadmap discussions, and external product descriptions:
+
+- Pave does not yet have a full production media upload pipeline.
+- Comments and group voting are functional workflows, but they are not realtime systems.
+- Moderation exists in-product, but there is not yet a full internal moderation console.
+- Feed ranking is currently heuristic and feature-driven, not an ML-serving or learned-ranking stack.
+- The mobile app is a beta client with core parity goals, not yet a separately scaled public app-store release operation.
 
 ---
 

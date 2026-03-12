@@ -827,11 +827,11 @@ The repo currently reflects several active product priorities:
 
 ### Constraints that are still real
 
-- no full media upload pipeline yet
-- no realtime comment or voting system
-- no advanced internal moderation console
-- feed ranking is heuristic and feature-driven, not an ML-serving stack
-- mobile is a beta client, not a separately scaled public app-store release system
+- Pave does not yet have a full production media upload pipeline.
+- Comments and group voting are functional workflows, but they are not realtime systems.
+- Moderation exists in-product, but there is not yet a full internal moderation console.
+- Feed ranking is currently heuristic and feature-driven, not an ML-serving or learned-ranking stack.
+- The mobile app is a beta client with core parity goals, not yet a separately scaled public app-store release operation.
 
 ## Reliability, Security, and Operations
 
