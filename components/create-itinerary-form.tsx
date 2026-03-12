@@ -69,6 +69,9 @@ type StatusContext = {
 };
 
 function reasonCopy(code?: string | null) {
+  if (code === "invalid_media_url") return "Published posts currently support external http(s) media URLs only. Native file uploads are not available yet.";
+  if (code === "unauthorized") return "Sign in again before creating, saving, or publishing this trip.";
+  if (code === "forbidden") return "This action is not available for the current account.";
   if (code === "provider_misconfigured") return "The place provider is not configured in this environment yet.";
   if (code === "provider_unavailable") return "The place provider is temporarily unavailable. Retry in a moment or use mock mode locally.";
   if (code === "rate_limited") return "This action is being rate limited right now. Please wait a moment and retry.";
@@ -80,7 +83,6 @@ function reasonCopy(code?: string | null) {
   if (code === "place_unresolved") return "One or more stops could not be resolved at save time. Redraft the plan or use the standard generator.";
   if (code === "missing_place") return "No destination could be resolved for this draft.";
   if (code === "unresolved_places") return "The AI draft referenced places that could not be verified.";
-  if (code === "duplicate_places") return "The draft duplicated places, so we switched to a safer fallback.";
   if (code === "policy_invalid") return "The draft violated Pave's itinerary guardrails, so we switched to a safer fallback.";
   if (code === "model_timeout") return "The AI response timed out, so the deterministic planner stepped in instead.";
   if (code === "model_error") return "The AI response could not be used, so the deterministic planner stepped in instead.";
@@ -524,6 +526,9 @@ export function CreateItineraryForm({ initialPlaceId }: { initialPlaceId?: strin
               onChange={(e) => setLinksInput(e.target.value)}
               placeholder="https://instagram... (one per line)"
             />
+            <p className="text-xs text-muted-foreground">
+              If you publish after create, Pave will only use external http(s) media links from this list. Native media uploads are not available yet.
+            </p>
           </div>
 
           <div className="space-y-3 rounded-xl border border-border bg-muted/70 p-4">

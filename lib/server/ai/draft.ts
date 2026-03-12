@@ -1,6 +1,7 @@
 import type { AiTripDraftRequest, AiTripDraftResponse, AiDraftFallbackReason } from "@pave/contracts";
 import { env } from "@/lib/env";
 import { getPlaceDetails } from "@/lib/server/place-service";
+import { captureServerException } from "@/lib/server/observability";
 import { buildFallbackTripDraft } from "@/lib/server/trip-service";
 import { OpenAIResponsesError, runResponseWithTools } from "@/lib/server/ai/client";
 import { getAiKnowledgeTool } from "@/lib/server/ai/knowledge";
@@ -187,6 +188,16 @@ export async function generateAiTripDraft(input: {
       }
     };
   } catch (error) {
-    return buildFallback(classifyDraftFailure(error));
+    const fallbackReason = classifyDraftFailure(error);
+    await captureServerException(error, {
+      route: "/api/ai/trips/draft",
+      subsystem: "ai_create",
+      userId: input.requesterUserId ?? null,
+      signedIn,
+      provider: "openai",
+      degraded: true,
+      fallbackReason
+    });
+    return buildFallback(fallbackReason);
   }
 }

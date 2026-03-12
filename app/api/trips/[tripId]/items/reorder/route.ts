@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { requireTripAuthor } from "@/lib/server/trip-access";
 
 export async function POST(request: NextRequest, { params }: { params: { tripId: string } }) {
+  const access = await requireTripAuthor(request, params.tripId);
+  if (!access.user || access.response) return access.response!;
+  const limited = await enforceRateLimit(request, { policy: "user_content", identifier: access.user.id });
+  if (limited) return limited;
+
   const body = await request.json();
   const dayId: string = body.dayId;
   const orderedItemIds: string[] = body.orderedItemIds || [];

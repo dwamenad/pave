@@ -1,22 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { trackEventWithActor } from "@/lib/server/events";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { requireApiUser } from "@/lib/server/route-user";
 import { containsProfanity, sanitizeToTags } from "@/lib/server/moderation";
 import { fetchMetadataForLinks } from "@/lib/server/link-metadata";
 
+function normalizeExternalMediaUrl(value: unknown) {
+  if (!value) return null;
+  const mediaUrl = String(value).trim();
+  if (!mediaUrl) return null;
+
+  try {
+    const parsed = new URL(mediaUrl);
+    if (!["http:", "https:"].includes(parsed.protocol)) {
+      return { ok: false as const };
+    }
+    return { ok: true as const, value: parsed.toString() };
+  } catch {
+    return { ok: false as const };
+  }
+}
+
 export async function POST(request: NextRequest) {
   const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
+  const limited = await enforceRateLimit(request, { policy: "user_content", identifier: auth.user.id });
+  if (limited) return limited;
 
   const body = await request.json();
   const tripId = String(body.tripId || "");
   const caption = String(body.caption || "").slice(0, 2000);
-  const mediaUrl = body.mediaUrl ? String(body.mediaUrl) : null;
+  const mediaUrl = normalizeExternalMediaUrl(body.mediaUrl);
   const visibility = body.visibility === "UNLISTED" ? "UNLISTED" : "PUBLIC";
   const destinationLabel = body.destinationLabel ? String(body.destinationLabel).slice(0, 120) : null;
   const links = Array.isArray(body.links) ? body.links.map((link: unknown) => String(link)) : [];
   const tags = sanitizeToTags(Array.isArray(body.tags) ? body.tags.map((tag: unknown) => String(tag)) : []);
+
+  if (mediaUrl && !mediaUrl.ok) {
+    return NextResponse.json(
+      {
+        error: "Posts currently support external http(s) media URLs only. Direct file uploads are not available yet.",
+        code: "invalid_media_url"
+      },
+      { status: 400 }
+    );
+  }
 
   const trip = await db.trip.findUnique({ where: { id: tripId } });
   if (!trip) {
@@ -31,7 +60,7 @@ export async function POST(request: NextRequest) {
       authorId: auth.user.id,
       tripId,
       caption,
-      mediaUrl,
+      mediaUrl: mediaUrl?.ok ? mediaUrl.value : null,
       visibility,
       destinationLabel,
       status,
@@ -84,7 +113,8 @@ export async function POST(request: NextRequest) {
       postId: post.id,
       tripId,
       visibility,
-      status
+      status,
+      mediaMode: mediaUrl?.ok ? "external_url" : "none"
     }
   });
 

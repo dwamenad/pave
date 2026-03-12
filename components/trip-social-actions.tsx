@@ -5,6 +5,13 @@ import { Download, Sparkles, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
+function exportFailureCopy(code?: string) {
+  if (code === "rate_limited") return "PDF export is being rate limited right now. Give it a minute and retry.";
+  if (code === "trip_not_found") return "We couldn't find this trip to export anymore.";
+  if (code === "unauthorized") return "Sign in again before exporting this trip.";
+  return "PDF generation is unavailable right now. You can retry in a moment.";
+}
+
 export function TripSocialActions({ tripId, tripTitle }: { tripId: string; tripTitle: string }) {
   const [caption, setCaption] = useState(`My itinerary for ${tripTitle}`);
   const [visibility, setVisibility] = useState<"PUBLIC" | "UNLISTED">("PUBLIC");
@@ -53,7 +60,8 @@ export function TripSocialActions({ tripId, tripTitle }: { tripId: string; tripT
     setStatus("Generating PDF...");
     const response = await fetch(`/api/trips/${tripId}/export/pdf`, { method: "POST" });
     if (!response.ok) {
-      setStatus("PDF generation failed.");
+      const data = (await response.json().catch(() => ({}))) as { error?: string; code?: string };
+      setStatus(data.error || exportFailureCopy(data.code));
       return;
     }
 

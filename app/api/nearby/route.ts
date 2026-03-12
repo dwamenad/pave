@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { budgetToPriceRange } from "@/lib/itinerary";
+import { captureServerException } from "@/lib/server/observability";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { searchNearbyPlaces } from "@/lib/server/place-service";
 
 const quickTypes = {
@@ -15,6 +17,9 @@ export async function GET(request: NextRequest) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
     return NextResponse.json({ error: "Invalid coordinates" }, { status: 400 });
   }
+
+  const limited = await enforceRateLimit(request, { policy: "provider_lookup" });
+  if (limited) return limited;
 
   const price = budgetToPriceRange("mid");
 
@@ -45,7 +50,11 @@ export async function GET(request: NextRequest) {
       mockMode: eat.mockMode || coffee.mockMode || quickDo.mockMode
     });
   } catch (error) {
-    console.error("Nearby provider unavailable", error);
+    await captureServerException(error, {
+      route: "/api/nearby",
+      subsystem: "nearby",
+      provider: "google_places"
+    });
     return NextResponse.json({
       eat: [],
       coffee: [],

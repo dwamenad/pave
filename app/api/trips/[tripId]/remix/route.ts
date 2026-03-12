@@ -2,12 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { createNotification, trackEventWithActor } from "@/lib/server/events";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { requireApiUser } from "@/lib/server/route-user";
 import { slugify } from "@/lib/utils";
 
 export async function POST(request: NextRequest, { params }: { params: { tripId: string } }) {
   const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
+  const limited = await enforceRateLimit(request, { policy: "user_content", identifier: auth.user.id });
+  if (limited) return limited;
 
   const sourceTrip = await db.trip.findUnique({
     where: { id: params.tripId },

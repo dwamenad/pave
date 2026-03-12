@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Mail, ShieldCheck } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,14 @@ export default function SupportPage() {
           <Mail className="h-4 w-4" />
           {supportEmail}
         </a>
+        <div className="mt-4 flex flex-wrap gap-4 text-sm">
+          <Link className="font-semibold text-primary hover:underline" href="/privacy">
+            Privacy
+          </Link>
+          <Link className="font-semibold text-primary hover:underline" href="/terms">
+            Terms
+          </Link>
+        </div>
       </section>
     </div>
   );

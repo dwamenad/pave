@@ -58,6 +58,20 @@ These screenshots were captured against the local seeded dataset, so they are a 
 - Stop DB: `pnpm db:down`
 - Tail DB logs: `pnpm db:logs`
 
+## Quick runtime health check
+Once the web app is running, you can verify the repo-only readiness path with:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+That route reports:
+- app version + environment
+- database connectivity
+- readiness booleans for auth, maps, AI create, mobile telemetry, and rate limiting
+
+Maps, AI create, and mobile telemetry are allowed to show as degraded locally without breaking unrelated screens. Database and auth are the important baseline checks.
+
 ### Docker-backed local DB note
 If you are using the bundled Docker Postgres container, your local `DATABASE_URL` should point at the compose credentials:
 
@@ -88,3 +102,5 @@ This matters most for contributors who already had an older local `.env` or `.en
   - `OPENAI_VECTOR_STORE_ID`
   - `ENABLE_AI_CREATE`
   - `NEXT_PUBLIC_ENABLE_AI_CREATE`
+- To force local place/demo behavior without live provider calls, set:
+  - `USE_MOCK_PLACES_PROVIDER=true`

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { rateLimit } from "@/lib/server/rate-limit";
+import { captureServerException, jsonError } from "@/lib/server/observability";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { autocompletePlaces } from "@/lib/server/place-service";
+
+export const dynamic = "force-dynamic";
 
 function toClientError(code?: string) {
   if (code === "provider_misconfigured") {
@@ -17,13 +20,8 @@ function toClientError(code?: string) {
 
 export async function GET(request: NextRequest) {
   try {
-    const limited = await rateLimit(request);
-    if (!limited.ok) {
-      return NextResponse.json(
-        { error: "Too many requests", retryAfterMs: limited.retryAfterMs },
-        { status: 429 }
-      );
-    }
+    const limited = await enforceRateLimit(request, { policy: "provider_lookup" });
+    if (limited) return limited;
 
     const query = request.nextUrl.searchParams.get("q") || "";
     const sessionToken = request.nextUrl.searchParams.get("sessionToken") || undefined;
@@ -50,10 +48,17 @@ export async function GET(request: NextRequest) {
       code: result.reasonCode,
       mockMode: result.mockMode
     });
-  } catch {
-    return NextResponse.json(
-      { error: "Unable to load place suggestions right now.", code: "provider_unavailable", suggestions: [] },
-      { status: 500 }
-    );
+  } catch (error) {
+    await captureServerException(error, {
+      route: "/api/search/autocomplete",
+      subsystem: "place_lookup",
+      provider: "google_places"
+    });
+    return jsonError({
+      error: "Unable to load place suggestions right now.",
+      code: "provider_unavailable",
+      status: 500,
+      extras: { suggestions: [] }
+    });
   }
 }

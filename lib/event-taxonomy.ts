@@ -12,6 +12,8 @@ export const TRACKED_EVENT_NAMES = [
   "follow_user",
   "invite_collaborator",
   "mobile_error",
+  "web_runtime_error",
+  "server_exception",
   "ai_draft_requested",
   "ai_draft_completed",
   "ai_draft_fallback",

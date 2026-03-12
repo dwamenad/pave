@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { createNotification, trackEventWithActor, trackFeedAction } from "@/lib/server/events";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { requireApiUser } from "@/lib/server/route-user";
 import { containsProfanity } from "@/lib/server/moderation";
 
@@ -61,6 +62,8 @@ export async function GET(request: NextRequest, { params }: { params: { postId: 
 export async function POST(request: NextRequest, { params }: { params: { postId: string } }) {
   const auth = await requireApiUser(request);
   if (!auth.user) return auth.response!;
+  const limited = await enforceRateLimit(request, { policy: "user_content", identifier: auth.user.id });
+  if (limited) return limited;
 
   const body = await request.json();
   const text = String(body.body || "").trim().slice(0, 500);

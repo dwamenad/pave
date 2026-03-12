@@ -260,6 +260,8 @@ That package intentionally has no build step right now. The workspace consumes i
 | `/nearby` | lightweight nearby discovery surface for quick local exploration |
 | `/notifications` | activity inbox |
 | `/support` | support and trust/safety contact path |
+| `/privacy` | current privacy baseline and data-handling boundaries |
+| `/terms` | current product terms and platform boundaries |
 
 ### Mobile routes
 
@@ -289,6 +291,7 @@ That package intentionally has no build step right now. The workspace consumes i
 | Parsing | `/api/social/parse`, `/api/links/metadata` |
 | Graph / growth | `/api/events/batch`, `/api/shares/track`, follow, block, notifications |
 | Safety | `/api/reports`, comment/post delete routes |
+| Ops | `/api/health` |
 
 ## Data Model Overview
 
@@ -555,6 +558,21 @@ Pave uses multiple env files on purpose.
 | `OPENAI_VECTOR_STORE_ID` | vector store id for curated planning docs | OpenAI file search tool |
 | `ENABLE_AI_CREATE` | server-side gate for AI create behavior | AI draft route |
 | `NEXT_PUBLIC_ENABLE_AI_CREATE` | client-side gate for showing the AI drafting path | `/create` UI |
+| `USE_MOCK_PLACES_PROVIDER` | explicit local-only switch for mock place data | local demos, tests, provider fallback drills |
+
+### Runtime readiness and degraded mode
+
+Pave now exposes `GET /api/health` as a lightweight readiness route.
+
+It reports:
+- app version
+- environment
+- database connectivity
+- subsystem readiness booleans for auth, maps, AI create, mobile telemetry, and rate limiting
+
+It does **not** expose secret values.
+
+This route is intentionally honest about optional integrations. Database and auth are treated as the core readiness baseline, while maps, AI create, and mobile telemetry can show as degraded without crashing unrelated product surfaces.
 
 ## AI Create Flow
 
@@ -940,6 +958,7 @@ pnpm test:e2e:headed
 - [docs/MOBILE_INFRA.md](./docs/MOBILE_INFRA.md) for mobile auth, telemetry, and device details
 - [docs/MOBILE_BETA_QA.md](./docs/MOBILE_BETA_QA.md) for mobile verification gates
 - [docs/SLOS_AND_DASHBOARDS.md](./docs/SLOS_AND_DASHBOARDS.md) for reliability targets
+- `/api/health` for a quick runtime readiness snapshot when you want to verify local or deployed setup
 
 ## Bottom Line
 

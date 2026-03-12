@@ -58,5 +58,6 @@ describe("route user auth resolution", () => {
     const result = await requireApiUser(request);
     expect(result.user).toBeNull();
     expect(result.response?.status).toBe(401);
+    await expect(result.response?.json()).resolves.toMatchObject({ code: "unauthorized" });
   });
 });

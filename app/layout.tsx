@@ -67,6 +67,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               </div>
             </header>
             <main className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
+            <footer className="border-t border-border bg-background/70">
+              <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 px-4 py-6 text-sm text-muted-foreground sm:px-6 md:flex-row md:items-center md:justify-between lg:px-8">
+                <p>
+                  Pave keeps planning, publishing, moderation, and mobile continuity in one product loop. Some surfaces still degrade gracefully when optional providers are unavailable.
+                </p>
+                <div className="flex flex-wrap items-center gap-4">
+                  <Link href="/support" className="hover:text-foreground">Support</Link>
+                  <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
+                  <Link href="/terms" className="hover:text-foreground">Terms</Link>
+                </div>
+              </div>
+            </footer>
           </div>
         </Providers>
       </body>

@@ -28,7 +28,7 @@ export async function requireApiUser(request: NextRequest) {
     return {
       user: null,
       actor: null,
-      response: NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      response: NextResponse.json({ error: "Unauthorized", code: "unauthorized" }, { status: 401 })
     };
   }
 

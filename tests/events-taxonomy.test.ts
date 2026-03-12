@@ -15,7 +15,9 @@ describe("event taxonomy", () => {
       "share_trip",
       "comment_post",
       "follow_user",
-      "invite_collaborator"
+      "invite_collaborator",
+      "web_runtime_error",
+      "server_exception"
     ];
 
     for (const eventName of required) {

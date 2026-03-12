@@ -3,14 +3,15 @@ import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { env } from "@/lib/env";
 import { trackEventWithActor } from "@/lib/server/events";
-import { getApiActor } from "@/lib/server/route-user";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
+import { requireTripAuthor } from "@/lib/server/trip-access";
 
 export async function POST(request: NextRequest, { params }: { params: { tripId: string } }) {
-  const actor = await getApiActor(request);
-  const trip = await db.trip.findUnique({ where: { id: params.tripId } });
-  if (!trip) {
-    return NextResponse.json({ error: "Trip not found" }, { status: 404 });
-  }
+  const access = await requireTripAuthor(request, params.tripId);
+  if (!access.user || access.response) return access.response!;
+  const limited = await enforceRateLimit(request, { policy: "user_content", identifier: access.user.id });
+  if (limited) return limited;
+  const trip = access.trip!;
 
   const token = nanoid(16);
   await db.groupInvite.create({
@@ -22,7 +23,7 @@ export async function POST(request: NextRequest, { params }: { params: { tripId:
 
   await trackEventWithActor({
     name: "invite_collaborator",
-    userId: actor?.user?.id ?? null,
+    userId: access.user.id,
     props: {
       tripId: params.tripId
     }

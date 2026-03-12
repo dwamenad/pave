@@ -141,6 +141,7 @@ These constraints are still real in the current implementation and should remain
 - Budget filter maps to price level ranges.
 - Trip generator creates 1-3 day itinerary with deterministic scoring.
 - Trip editor supports add/remove/reorder/move items.
+- Direct trip structure mutation routes must require an authenticated actor and enforce author-only edits for itinerary items and invite creation.
 
 ## 7.3 Social Input and Personalization
 - Accept caption + up to 5 links.
@@ -175,6 +176,7 @@ These constraints are still real in the current implementation and should remain
 ## 7.4 Social Posts and Feed
 - Post must reference an existing trip.
 - Post payload includes caption, optional media URL, visibility (`PUBLIC|UNLISTED`), tags, destination label.
+- Post media currently supports external `http(s)` URLs only; native media upload is not part of this baseline.
 - Feed displays only `ACTIVE + PUBLIC` posts.
 - Unlisted posts are viewable by direct URL; not discoverable in feed/profile for non-owners.
 
@@ -198,6 +200,12 @@ These constraints are still real in the current implementation and should remain
 - Server-generated PDF from trip data.
 - Export status tracked (`TripExport`).
 - Response returns downloadable PDF stream on success.
+- Failures must return structured reason codes and recovery-oriented user copy.
+
+## 7.9 Runtime readiness and trust
+- The repo exposes a lightweight readiness route at `/api/health`.
+- Optional integrations should show as degraded rather than crashing unrelated product surfaces.
+- First-party `/support`, `/privacy`, and `/terms` pages must stay aligned with the actual product boundaries.
 
 ---
 
@@ -253,6 +261,7 @@ All contributor changes to model must include:
 - `GET /api/search/autocomplete`
 - `GET /api/places/details`
 - `GET /api/places/nearby`
+- `GET /api/health`
 
 ---
 
@@ -266,6 +275,7 @@ All contributor changes to model must include:
 - `/trip/[slug]`: Builder + share + remix + export + vote
 - `/place/[placeId]`: Nearby place hub + create/share CTA
 - `/nearby`: No-login quick picks
+- `/support`, `/privacy`, `/terms`: trust, support, and current product-boundary pages
 
 ---
 

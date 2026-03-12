@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
 
 vi.mock("@/lib/server/rate-limit", () => ({
-  rateLimit: vi.fn().mockResolvedValue({ ok: true })
+  enforceRateLimit: vi.fn().mockResolvedValue(null)
 }));
 
 vi.mock("@/lib/server/link-metadata", () => ({

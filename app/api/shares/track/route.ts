@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { trackEventWithActor } from "@/lib/server/events";
+import { enforceRateLimit } from "@/lib/server/rate-limit";
 import { getApiActor } from "@/lib/server/route-user";
 
 export async function POST(request: NextRequest) {
@@ -16,6 +17,11 @@ export async function POST(request: NextRequest) {
   const inviterId = user?.id ?? null;
   const destination = typeof body.destination === "string" ? body.destination.slice(0, 120) : null;
   const markOpened = body.markOpened === true;
+  const limited = await enforceRateLimit(request, {
+    policy: "social_action",
+    identifier: user?.id ?? token
+  });
+  if (limited) return limited;
 
   const attribution = await db.shareAttribution.upsert({
     where: {

@@ -17,6 +17,19 @@ export type CreateTripFromDraftFailureCode =
   | "place_unresolved"
   | "provider_unavailable";
 
+export type SocialParseFailureCode =
+  | "invalid_input"
+  | "rate_limited"
+  | "provider_misconfigured"
+  | "provider_unavailable"
+  | "invalid_request";
+
+export type ExportFailureCode =
+  | "unauthorized"
+  | "rate_limited"
+  | "trip_not_found"
+  | "export_failed";
+
 export type AiCreatePreferences = {
   budget: "budget" | "mid" | "luxury";
   days: 1 | 2 | 3;
