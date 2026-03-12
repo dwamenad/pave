@@ -33,10 +33,28 @@ The setup script will:
 - Mobile only: `pnpm mobile:dev`
 - Web + mobile together: `pnpm dev:all`
 
+## What good local state looks like
+Once Docker Postgres is up and the seed has run cleanly, you should be able to load seeded surfaces immediately.
+
+| `/create` | `/nearby` |
+|---|---|
+| <img src="./assets/screenshots/pave-smoke-create.png" alt="Local create flow screenshot" width="100%" /> | <img src="./assets/screenshots/pave-smoke-nearby.png" alt="Local nearby screenshot" width="100%" /> |
+
+These screenshots were captured against the local seeded dataset, so they are a good baseline for quick smoke checks when a contributor is unsure whether their environment is healthy.
+
 ## Database helpers
 - Start DB: `pnpm db:up`
 - Stop DB: `pnpm db:down`
 - Tail DB logs: `pnpm db:logs`
+
+### Docker-backed local DB note
+If you are using the bundled Docker Postgres container, your local `DATABASE_URL` should point at the compose credentials:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@127.0.0.1:5432/one_click_away?schema=public"
+```
+
+This matters most for contributors who already had an older local `.env` or `.env.local` before Docker setup was standardized. `pnpm setup:contributor` will create missing env files, but it will not overwrite an existing local connection string for you.
 
 ## If setup fails
 1. Ensure Docker is running.
