@@ -75,6 +75,110 @@ That route reports:
 
 Maps, AI create, and mobile telemetry are allowed to show as degraded locally without breaking unrelated screens. Database and auth are the important baseline checks.
 
+## Auth setup: what contributors actually need
+Pave already has a working backend auth system. Contributors do not need to build password auth to get sign-in working locally.
+
+Current auth methods:
+- web: Google OAuth via NextAuth
+- mobile: native Google sign-in plus backend-issued access and refresh tokens
+
+### What `/api/health` means for auth
+The readiness route reports `subsystems.auth.ready=true` when the **web auth** prerequisites are present:
+- `NEXTAUTH_SECRET`
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `NEXTAUTH_URL` or `NEXT_PUBLIC_APP_URL`
+
+That check does **not** mean mobile sign-in is configured. Mobile auth has additional platform-specific client IDs.
+
+### Web auth: minimum local setup
+Set these in `.env.local`:
+
+```bash
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="replace_with_32_plus_char_random_string"
+GOOGLE_CLIENT_ID="your_google_oauth_client_id"
+GOOGLE_CLIENT_SECRET="your_google_oauth_client_secret"
+```
+
+In Google Cloud Console, create a **Web application** OAuth client and set:
+
+- Authorized JavaScript origins:
+
+```text
+http://localhost:3000
+```
+
+- Authorized redirect URIs:
+
+```text
+http://localhost:3000/api/auth/callback/google
+```
+
+Once that is in place:
+1. run `pnpm dev`
+2. open `http://localhost:3000`
+3. sign in with Google
+4. confirm a protected action works, such as save, like, comment, publish, or export
+
+### Mobile auth: extra local setup
+Mobile sign-in uses Google on-device, then exchanges the verified Google identity for Pave access and refresh tokens.
+
+Set these in `.env.local`:
+
+```bash
+GOOGLE_IOS_CLIENT_ID="your_ios_google_client_id"
+GOOGLE_ANDROID_CLIENT_ID="your_android_google_client_id"
+MOBILE_AUTH_JWT_SECRET="replace_with_mobile_jwt_secret"
+```
+
+Set these in `apps/mobile/.env`:
+
+```bash
+EXPO_PUBLIC_API_BASE_URL="http://localhost:3000"
+EXPO_PUBLIC_DEEP_LINK_BASE_URL="http://localhost:3000"
+EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID="your_ios_google_client_id"
+EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID="your_android_google_client_id"
+```
+
+The client IDs must match between server and Expo:
+- `GOOGLE_IOS_CLIENT_ID` <-> `EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID`
+- `GOOGLE_ANDROID_CLIENT_ID` <-> `EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID`
+
+Pave's Expo identifiers are currently:
+- iOS bundle: `app.pave.mobile`
+- Android package: `app.pave.mobile`
+
+Use those when creating the corresponding Google mobile OAuth clients.
+
+Once that is in place:
+1. run `pnpm mobile:dev`
+2. open the Expo app
+3. use `Continue with Google`
+4. confirm the app can load signed-in surfaces and protected API calls
+
+### Shared protected-route behavior
+Backend API routes already accept either:
+- a web session cookie, or
+- a mobile bearer token
+
+That unified route protection is why contributors only need to configure the auth providers and envs, not build a second auth layer for mobile.
+
+### Fast auth smoke checklist
+If a contributor wants the shortest meaningful auth test:
+
+Web:
+1. sign in with Google on `localhost:3000`
+2. save or like a post
+3. create a comment or publish a post
+
+Mobile:
+1. sign in with Google in Expo
+2. load the feed
+3. open a post or trip that requires authenticated API access
+
+For common failure modes, use [AUTH_TROUBLESHOOTING.md](./AUTH_TROUBLESHOOTING.md).
+
 ### Docker-backed local DB note
 If you are using the bundled Docker Postgres container, your local `DATABASE_URL` should point at the compose credentials:
 
