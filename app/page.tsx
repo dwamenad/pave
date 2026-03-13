@@ -73,26 +73,34 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="overflow-hidden bg-primary text-white">
-        <div className="mx-auto grid min-h-[76vh] w-full max-w-[1440px] gap-8 px-6 py-10 md:px-10 lg:grid-cols-[0.6fr_1.4fr] lg:items-end lg:py-0">
-          <div className="flex flex-col justify-end space-y-6 pb-6 lg:pb-16">
-            <p className="text-xs font-bold uppercase tracking-[0.36em] text-white/70">Travel planning</p>
+      <section className="relative overflow-hidden bg-[linear-gradient(135deg,#18b8ea_0%,#0fa3d8_42%,#0887c5_100%)] text-white">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.18),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.12),transparent_28%)]" />
+        <div className="mx-auto grid min-h-[72vh] w-full max-w-[1440px] gap-10 px-6 py-12 md:px-10 lg:grid-cols-[0.58fr_1.42fr] lg:items-center lg:py-0">
+          <div className="flex max-w-sm flex-col justify-center space-y-5 lg:pb-4">
+            <p className="text-xs font-bold uppercase tracking-[0.36em] text-white/68">Travel planning</p>
             <h1 className="text-6xl font-extrabold tracking-tight md:text-8xl">Pave</h1>
-            <p className="max-w-sm text-lg leading-8 text-white/82">
-              Turns saved travel posts, links, and captions into structured itineraries that are easy to review, share,
-              and reuse.
+            <p className="max-w-sm text-2xl font-medium leading-tight text-white/92 md:text-[2rem]">
+              Plan the trip your saved posts started.
+            </p>
+            <p className="max-w-[20rem] text-base leading-7 text-white/76">
+              Bring the links, captions, and place ideas that sparked the trip. Pave helps shape them into something your
+              group can actually use.
             </p>
           </div>
 
           <div className="relative flex items-end justify-center lg:justify-end">
-            <div className="absolute inset-y-10 left-14 right-0 rounded-[3.5rem] bg-white/12 blur-3xl" />
-            <div className="relative w-full max-w-5xl overflow-hidden rounded-t-[3rem] bg-background p-4 shadow-[0_40px_140px_-42px_rgba(0,0,0,0.58)] md:p-5">
-              <Image
-                src={hikersHero}
-                alt="Three hikers walking along an alpine trail above a glacier-fed valley."
-                className="h-auto w-full rounded-[2.2rem] object-cover object-center"
-                priority
-              />
+            <div className="absolute inset-y-14 left-10 right-4 rounded-[3.5rem] bg-white/14 blur-3xl" />
+            <div className="relative w-full max-w-5xl overflow-hidden rounded-[3rem] border border-white/18 shadow-[0_40px_140px_-42px_rgba(0,0,0,0.52)]">
+              <div className="relative aspect-[16/10] w-full overflow-hidden">
+                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/12 via-transparent to-white/6" />
+                <Image
+                  src={hikersHero}
+                  alt="Three hikers walking along an alpine trail above a glacier-fed valley."
+                  fill
+                  className="object-cover object-center"
+                  priority
+                />
+              </div>
             </div>
           </div>
         </div>
