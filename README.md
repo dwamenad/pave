@@ -23,6 +23,10 @@
   <em>This is the real product repo, not a landing-page shell pretending to be one.</em>
 </p>
 
+<p align="center">
+  <strong>Domain note:</strong> the product brand remains <strong>Pave</strong>. The public-facing site can live at <strong>pavetrip.com</strong> while the planning app, feed, legal pages, and support surfaces continue to ship from this same repo.
+</p>
+
 ## At a Glance
 
 <p align="center">
