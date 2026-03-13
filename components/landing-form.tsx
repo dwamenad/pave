@@ -88,9 +88,11 @@ export function LandingForm() {
       <div className="grid gap-8 lg:grid-cols-[1.3fr_1fr]">
         <div className="space-y-4">
           <div>
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Explore from links, then build in one click</h2>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-primary">Try the parser</p>
+            <h2 className="mt-2 text-2xl font-extrabold tracking-tight text-foreground">Bring one travel idea in and see how Pave reads it.</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Paste links and caption context, detect location hints, then jump into place discovery or go directly to create.
+              Paste a few links, add the caption context, and we’ll surface the destination signal so you can decide
+              whether to open place context or move straight into the full create flow.
             </p>
           </div>
 
@@ -102,7 +104,7 @@ export function LandingForm() {
                 className="border-0 px-0 focus:ring-0"
                 value={query}
                 onChange={(e) => onSearchChange(e.target.value)}
-                placeholder="Try: Eiffel Tower, Accra, NYC"
+                placeholder="Try: Lisbon, Kyoto, Accra, Lower Manhattan"
               />
             </div>
           </div>
@@ -123,14 +125,14 @@ export function LandingForm() {
               className="min-h-28 rounded-xl"
               value={socialInput}
               onChange={(e) => setSocialInput(e.target.value)}
-              placeholder="Best coffee in Paris near Eiffel Tower, cozy hotel nearby, and local spots..."
+              placeholder="Three friends landing in Lisbon Friday afternoon, want food spots, walkable neighborhoods, and a couple of local places we can publish later..."
             />
           </div>
 
           <div className="flex flex-wrap gap-2">
             <Button className="rounded-xl px-4 font-bold" type="button" onClick={parseSocial} disabled={!socialInput.trim() || loading}>
               <Wand2 className="mr-2 h-4 w-4" />
-              {loading ? "Parsing..." : "Parse location hints"}
+              {loading ? "Parsing..." : "Parse the signal"}
             </Button>
             <Button
               className="rounded-xl px-4 font-bold"
@@ -140,17 +142,17 @@ export function LandingForm() {
               onClick={() => suggestions[0] && goToPlace(suggestions[0].placeId)}
             >
               <Link2 className="mr-2 h-4 w-4" />
-              Build my plan
+              Open place context
             </Button>
             <Button className="rounded-xl px-4 font-bold" type="button" variant="ghost" onClick={() => router.push("/create")}>
-              Continue to create
+              Continue to the full create flow
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </div>
 
         <div className="space-y-3 rounded-2xl border border-border bg-muted/70 p-4">
-          <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Signal Preview</h3>
+          <h3 className="text-sm font-bold uppercase tracking-wide text-muted-foreground">Signal preview</h3>
 
           {parseResult?.hints?.length ? (
             <div className="flex flex-wrap gap-2">
@@ -161,7 +163,7 @@ export function LandingForm() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">Parse social text to see detected hints.</p>
+            <p className="text-sm text-muted-foreground">Once you parse the source material, we’ll show the location hints we can actually work with.</p>
           )}
 
           {parseResult?.ambiguous?.length ? (
@@ -199,9 +201,12 @@ export function LandingForm() {
           <div className="rounded-xl bg-card p-3 shadow-sm">
             <p className="inline-flex items-center gap-1 text-xs font-semibold text-muted-foreground">
               <Sparkles className="h-3.5 w-3.5 text-primary" />
-              Pro tip
+              Good input wins
             </p>
-            <p className="mt-1 text-sm text-muted-foreground">Include vibe words like “budget”, “luxury”, “food”, or “hike” for better recommendations.</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Mention vibe words like “budget”, “quiet”, “food”, “nightlife”, or “walkable” so the next step has better
+              structure to work from and the eventual itinerary feels less generic.
+            </p>
           </div>
 
           {error ? <p className="text-xs text-red-600">{error}</p> : null}

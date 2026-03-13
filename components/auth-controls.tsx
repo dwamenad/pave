@@ -9,7 +9,12 @@ export function AuthControls() {
   const { data: session, status } = useSession();
 
   if (status === "loading") {
-    return <span className="text-xs text-muted-foreground">Loading...</span>;
+    return (
+      <div className="flex items-center gap-2" aria-hidden="true">
+        <div className="hidden h-9 w-24 rounded-lg border border-border bg-card/70 md:block" />
+        <div className="h-9 w-28 rounded-lg border border-border bg-card/70" />
+      </div>
+    );
   }
 
   if (!session?.user) {
