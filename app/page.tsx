@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { PaveMark } from "@/components/pave-mark";
 import createScreenshot from "@/docs/assets/screenshots/pave-smoke-create.png";
+import hikersHero from "@/docs/assets/pave-hikers-hero.png";
 import feedScreenshot from "@/docs/assets/screenshots/pave-smoke-feed.png";
 import nearbyScreenshot from "@/docs/assets/screenshots/pave-smoke-nearby.png";
 
@@ -87,9 +88,9 @@ export default function HomePage() {
             <div className="absolute inset-y-10 left-14 right-0 rounded-[3.5rem] bg-white/12 blur-3xl" />
             <div className="relative w-full max-w-5xl overflow-hidden rounded-t-[3rem] bg-background p-4 shadow-[0_40px_140px_-42px_rgba(0,0,0,0.58)] md:p-5">
               <Image
-                src={createScreenshot}
-                alt="Pave create flow showing the itinerary builder working from social inspiration."
-                className="h-auto w-full rounded-[2.2rem] object-cover object-top"
+                src={hikersHero}
+                alt="Three hikers walking along an alpine trail above a glacier-fed valley."
+                className="h-auto w-full rounded-[2.2rem] object-cover object-center"
                 priority
               />
             </div>
